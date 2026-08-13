@@ -52,14 +52,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </button>
         </div>
 
-        <button className="workspace-switcher" type="button" aria-label="Switch workspace">
+        <Link to="/settings" className="workspace-switcher" aria-label="Open workspace settings">
           <span className="workspace-avatar">{WORKSPACE.initials}</span>
           <span>
             <strong>{WORKSPACE.name}</strong>
             <small>{WORKSPACE.plan}</small>
           </span>
           <ChevronDown size={15} />
-        </button>
+        </Link>
 
         <nav className="main-nav" aria-label="Main navigation">
           {NAV_GROUPS.map((group) => (
@@ -95,7 +95,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <div className="credit-bar">
               <span style={{ width: `${WORKSPACE.creditUsedPercent}%` }} />
             </div>
-            <button type="button">{WORKSPACE.managePlanLabel}</button>
+            <Link to="/settings">{WORKSPACE.managePlanLabel}</Link>
           </div>
 
           {SIDEBAR_FOOTER_LINKS.map((item) => {
@@ -118,14 +118,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             )
           })}
 
-          <button className="profile-row" type="button" aria-label="Account menu">
+          <Link to="/settings" className="profile-row" aria-label="Open account settings">
             <span className="profile-avatar">{WORKSPACE.userInitials}</span>
             <span>
               <strong>{WORKSPACE.userName}</strong>
               <small>{WORKSPACE.userRole}</small>
             </span>
             <ChevronDown size={15} />
-          </button>
+          </Link>
         </div>
       </aside>
 

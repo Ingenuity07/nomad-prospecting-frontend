@@ -1,14 +1,11 @@
 import { useParams } from 'react-router-dom'
 import {
   ArrowRight,
-  ArrowUpRight,
   Check,
   ChevronDown,
   ExternalLink,
   Link2,
   Mail,
-  MoreHorizontal,
-  Plus,
   Sparkles,
   Target,
   TrendingUp,
@@ -124,15 +121,9 @@ export function LeadDetailPage() {
           >
             {syncing ? 'Syncing...' : synced ? 'Synced ✓' : 'Sync to CRM'}
           </button>
-          <button className="button button-secondary" type="button">
-            <Plus size={14} /> Add to list
-          </button>
           <Link to="/campaigns" className="button button-primary">
             <Sparkles size={14} /> Build outreach
           </Link>
-          <button className="icon-button" type="button" aria-label="More account actions">
-            <MoreHorizontal size={16} />
-          </button>
         </div>
       </header>
 
@@ -223,18 +214,13 @@ export function LeadDetailPage() {
                         <span className={`evidence-strength ${item.strength === 'medium' ? 'medium' : ''}`}>
                           {item.strength === 'strong' ? 'Strong evidence' : 'Supporting evidence'}
                         </span>
-                        <button type="button">
-                          View source <ArrowUpRight size={10} />
-                        </button>
+                        <span className="evidence-source">{item.source}</span>
                       </div>
                     </div>
                   </article>
                 )
               })}
             </div>
-            <button className="show-evidence" type="button">
-              Show all {account.evidenceTotal} evidence signals <ChevronDown size={13} />
-            </button>
           </section>
 
           <section className="card contacts-card">
@@ -243,9 +229,6 @@ export function LeadDetailPage() {
                 <span className="eyebrow-label">People map</span>
                 <h2>Likely buying group</h2>
               </div>
-              <button className="button button-secondary small-button" type="button">
-                <Plus size={12} /> Find more people
-              </button>
             </div>
             <div className="contact-table">
               {account.contacts.map((contact) => (
@@ -261,15 +244,22 @@ export function LeadDetailPage() {
                     <small>{contact.relevancePct}% relevance</small>
                   </span>
                   <div>
-                    <button type="button" aria-label={`Email ${contact.name}`}>
+                    <a
+                      href={`mailto:${contact.name.toLowerCase().replace(/\s+/g, '.')}@example.com`}
+                      aria-label={`Email ${contact.name}`}
+                      title={`Email ${contact.name}`}
+                    >
                       <Mail size={13} />
-                    </button>
-                    <button type="button" aria-label={`${contact.name} on LinkedIn`}>
+                    </a>
+                    <a
+                      href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(contact.name)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`${contact.name} on LinkedIn`}
+                      title={`${contact.name} on LinkedIn`}
+                    >
                       <Link2 size={13} />
-                    </button>
-                    <button type="button" aria-label={`More for ${contact.name}`}>
-                      <MoreHorizontal size={13} />
-                    </button>
+                    </a>
                   </div>
                 </div>
               ))}
@@ -303,9 +293,6 @@ export function LeadDetailPage() {
           <section className="card company-snapshot">
             <div className="card-heading-row compact">
               <h2>Company snapshot</h2>
-              <button type="button" aria-label="Snapshot options">
-                <MoreHorizontal size={15} />
-              </button>
             </div>
             <dl>
               {account.snapshot.map((row) => (
@@ -341,7 +328,7 @@ export function LeadDetailPage() {
               <small>Account owner</small>
               <strong>Priya Shah</strong>
             </p>
-            <button type="button">Change</button>
+            <Link to="/settings">Change</Link>
           </section>
         </aside>
       </div>

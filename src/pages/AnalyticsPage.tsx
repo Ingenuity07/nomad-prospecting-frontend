@@ -1,5 +1,5 @@
-import { useId, type ReactNode } from 'react'
-import { ArrowRight, Download, Lightbulb, MailCheck, Radar, Target, TrendingUp, type LucideIcon } from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
+import { Download, Lightbulb, MailCheck, Radar, Target, TrendingUp, type LucideIcon } from 'lucide-react'
 import {
   funnelInsight,
   pipeline,
@@ -27,8 +27,33 @@ const W = 500
 const H = 210
 const PAD = 12
 
+const RANGES = ['Last 30 days', 'Last 60 days', 'Last 90 days']
+
+function downloadReport(rows: ProblemPerformance[]) {
+  const header = ['Problem', 'Accounts', 'Qualified', 'Positive replies', 'Meetings', 'Pipeline']
+  const body = rows.map((row) => [
+    row.problem,
+    row.accounts,
+    row.qualified,
+    row.positiveReply,
+    row.meetings,
+    row.pipeline,
+  ])
+  const csv = [header, ...body]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'nomad-pipeline-report.csv'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export function AnalyticsPage() {
   const gradientId = useId()
+  const [range, setRange] = useState(0)
 
   const { data: analyticsMetricsList } = useAsyncData(getAnalyticsMetrics, [])
   const { data: funnelStagesList } = useAsyncData(getFunnelStages, [])
@@ -53,11 +78,16 @@ export function AnalyticsPage() {
           </p>
         </div>
         <div className="page-actions">
-          <button className="button button-secondary" type="button">
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={() => downloadReport(problemPerformanceList)}
+            disabled={problemPerformanceList.length === 0}
+          >
             <Download size={14} /> Export
           </button>
-          <button className="button button-secondary" type="button">
-            <span aria-hidden="true">📅</span> Last 30 days
+          <button className="button button-secondary" type="button" onClick={() => setRange((r) => (r + 1) % RANGES.length)}>
+            <span aria-hidden="true">📅</span> {RANGES[range]}
           </button>
         </div>
       </header>
@@ -195,9 +225,6 @@ export function AnalyticsPage() {
               <span className="eyebrow-label">Wedge performance</span>
               <h2>Pipeline by operational problem</h2>
             </div>
-            <button className="text-link" type="button">
-              Full report <ArrowRight size={13} />
-            </button>
           </div>
           <div className="table-wrap">
             <table className="data-table performance-table">

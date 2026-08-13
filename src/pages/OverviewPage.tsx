@@ -1,7 +1,6 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getDashboard } from '../api/dashboard'
-import { ActivityFeed } from '../components/dashboard/ActivityFeed'
 import { MetricGrid } from '../components/dashboard/MetricGrid'
 import { OpportunityMap } from '../components/dashboard/OpportunityMap'
 import { PageHeader } from '../components/dashboard/PageHeader'
@@ -42,9 +41,8 @@ export function OverviewPage() {
         <SignalPulse data={data.pulse} />
       </section>
 
-      <section className="dashboard-grid dashboard-grid-bottom">
+      <section className="dashboard-grid dashboard-grid-bottom" style={{ gridTemplateColumns: '1fr' }}>
         <PriorityAccounts accounts={data.priorityAccounts} />
-        <ActivityFeed activity={data.activity} />
       </section>
     </div>
   )

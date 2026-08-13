@@ -1,3 +1,5 @@
+/* This module is the untyped boundary with the external backend API. */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { API } from '../constants'
 
 /**

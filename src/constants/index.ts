@@ -53,6 +53,58 @@ export const WORKSPACE = {
 
 export const SEARCH_PLACEHOLDER = 'Search accounts, signals, or lists…'
 
+/* ------------------------------------------------------------------ */
+/* Start discovery (ProspectingDiscoverAPIView)                        */
+/* ------------------------------------------------------------------ */
+
+export const DISCOVER = {
+  eyebrow: 'Start discovery',
+  title: 'Find new customers',
+  description:
+    'Tell us the problem your customers have and where they are based. We search for companies that match, then check each one for you.',
+  // Form
+  problemLabel: 'What problem do your customers have?',
+  problemPlaceholder: 'e.g. Teams plan delivery routes by hand and lose hours every week',
+  problemExamples: ['Manual route planning', 'Scheduling bottlenecks', 'Poor delivery visibility'],
+  locationLabel: 'Where are they based?',
+  locationPlaceholder: 'e.g. Leeds, Manchester, or United Kingdom',
+  locationExamples: ['Leeds', 'Manchester', 'London'],
+  submitLabel: 'Start discovery',
+  submittingLabel: 'Starting…',
+  // Validation
+  problemRequired: 'Tell us the problem you solve.',
+  locationRequired: 'Tell us where your customers are based.',
+  // How it works
+  howTitle: 'How it works',
+  howSteps: [
+    { title: 'We find companies', detail: 'We search for businesses that match your problem and location.' },
+    { title: 'We check each one', detail: 'We look at their website and contacts to confirm the fit.' },
+    { title: 'You get a lead list', detail: 'Qualified companies appear in your Leads page with a fit score.' },
+  ],
+  // Run status
+  runStarted: 'Discovery started',
+  runFor: 'Looking for',
+  runStagePrefix: 'Step',
+  runStages: [
+    { stage: 'queued', progress: 5, message: 'Starting the search' },
+    { stage: 'discovering', progress: 20, message: 'Finding companies' },
+    { stage: 'resolving', progress: 40, message: 'Removing duplicates' },
+    { stage: 'researching', progress: 70, message: 'Checking each company' },
+    { stage: 'completed', progress: 100, message: 'Done' },
+  ] as const,
+  // Completion
+  completeTitle: 'Discovery complete',
+  foundLabel: 'companies found',
+  newLabel: 'new to you',
+  duplicateLabel: 'already known',
+  viewLeads: 'View leads',
+  startAnother: 'Start another discovery',
+  // Failure
+  failedTitle: 'Discovery failed',
+  failedDetail: 'Something went wrong while finding companies. Please try again.',
+  tryAgain: 'Try again',
+} as const
+
 export const NAV_GROUPS = [
   {
     label: 'Workspace',
@@ -94,27 +146,22 @@ export const SIDEBAR_FOOTER_LINKS = [
 /* ------------------------------------------------------------------ */
 
 export const OVERVIEW = {
-  eyebrow: 'Workspace overview',
-  title: 'Turn operational friction into pipeline.',
+  eyebrow: 'Overview',
+  title: 'See your best opportunities at a glance.',
   description:
-    'Nomad finds companies with expensive, visible problems — then shows you the evidence behind every match.',
+    'We find companies with the problems you solve, check each one, and score how good a fit they are.',
   ctaLabel: 'Start discovery',
   // Opportunity map
-  opportunityEyebrow: 'Opportunity map',
-  opportunityTitle: 'Where the pain is showing',
+  opportunityEyebrow: 'Top problems',
+  opportunityTitle: 'Problems your customers have',
   viewAllSignals: 'View all signals',
   // Signal pulse
-  pulseEyebrow: 'Signal pulse',
-  pulseTitle: 'Demand is rising',
+  pulseEyebrow: 'Signals over time',
+  pulseTitle: 'New signals each week',
   pulseDescription: 'New operational-problem signals found over the last 8 weeks.',
   pulseThisWeek: 'This week',
   // Priority accounts
   priorityEyebrow: 'Priority accounts',
-  priorityTitle: 'Best opportunities right now',
-  allAccounts: 'All accounts',
-  // Activity
-  activityEyebrow: 'Activity',
-  activityTitle: 'What changed',
-  markRead: 'Mark read',
-  viewActivity: 'View workspace activity',
+  priorityTitle: 'Top accounts to contact',
+  allAccounts: 'View all leads',
 } as const

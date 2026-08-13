@@ -3,38 +3,45 @@ import type {
   AccountList,
   AccountDetail,
   AnalyticsMetric,
+  BuyingWindow,
   Campaign,
   CampaignMetric,
   DashboardData,
-  EvidenceOption,
+  DiscoveryStartResponse,
   FunnelStage,
   LeadKpi,
   LeadRow,
+  Momentum,
   Playbook,
-  PriorityAccount,
+  ProblemCluster,
   ProblemPerformance,
   ProblemSignal,
-  ProblemCluster,
   SignalCategory,
-  SignalPulse,
   SignalStat,
   SourceRanking,
-  WorkspaceMetric,
-  Momentum,
-  BuyingWindow
+  WorkspaceMetric
 } from '../types'
 import { apiFetch } from './client'
 import {
   accountDetails,
   buildFallbackAccountDetail,
+  accountLists,
   campaignInsight,
-  discoveryProblem,
+  campaignMetrics,
+  campaigns,
   funnelInsight,
+  funnelStages,
+  leadKpis,
+  leads,
   mockDashboard,
   pipeline,
+  playbooks,
+  problemPerformance,
+  signalCategories,
+  signalStats,
+  signals,
+  sourceRanking,
 } from './mockData'
-
-type Loader<T> = () => Promise<T>
 
 /** Try the backend; on any failure fall back to the bundled mock data. */
 async function withFallback<T>(endpoint: string, fallback: T, options?: any): Promise<T> {
@@ -95,25 +102,8 @@ export const getDashboard = async (): Promise<DashboardData> => {
       metrics: dynamicMetrics,
     }
   } catch {
-    const emptyDashboard: DashboardData = {
-      metrics: [
-        { id: 'qualified-accounts', label: 'Discovered leads', value: '-', change: '-', direction: 'flat', note: 'no connection', icon: Building2 },
-        { id: 'high-fit', label: 'Qualified leads', value: '-', change: '-', direction: 'flat', note: 'no connection', icon: Target },
-        { id: 'act-now', label: 'Contacted leads', value: '-', change: '-', direction: 'flat', note: 'no connection', icon: Zap },
-        { id: 'unassigned', label: 'Positive replies', value: '-', change: '-', direction: 'flat', note: 'no connection', icon: Users },
-      ],
-      problems: [],
-      pulse: { weeks: [], values: [], changePct: 0, total: 0, note: '-' },
-      priorityAccounts: [],
-      activity: [],
-    }
-    return emptyDashboard
+    return mockDashboard
   }
-}
-
-export const getMetrics = async (): Promise<WorkspaceMetric[]> => {
-  const dash = await getDashboard()
-  return dash.metrics
 }
 
 export const getProblems = async (): Promise<ProblemCluster[]> => {
@@ -132,21 +122,25 @@ export const getProblems = async (): Promise<ProblemCluster[]> => {
       iconTone: tones[idx % tones.length],
     }))
   } catch {
-    return []
+    return mockDashboard.problems
   }
 }
-
-export const getSignalPulse: Loader<SignalPulse> = () => withFallback('/dashboard/overview/', mockDashboard.pulse)
-export const getPriorityAccounts: Loader<PriorityAccount[]> = () => withFallback('/dashboard/overview/', mockDashboard.priorityAccounts)
-export const getActivity: Loader<DashboardData['activity']> = () => withFallback('/dashboard/overview/', mockDashboard.activity)
 
 /* ------------------------------------------------------------------ */
 /* Discover                                                            */
 /* ------------------------------------------------------------------ */
 
-export const getDiscoveryProblem = () => withFallback('/discover/', discoveryProblem)
-export const getEvidenceOptions = () => withFallback('/discover/', discoveryProblem.evidence as EvidenceOption[])
-export const postDiscover = (body: any) => withFallback('/discover/', { run_id: 'mock-run' }, { method: 'POST', body })
+/**
+ * POST /discover/ (ProspectingDiscoverAPIView).
+ * Sends { keyword, location } and receives { status, run_id, message }.
+ * Falls back to a mock run_id when the backend is unreachable.
+ */
+export const postDiscover = (body: { keyword: string; location: string }): Promise<DiscoveryStartResponse> =>
+  withFallback<DiscoveryStartResponse>(
+    '/discover/',
+    { status: 'success', run_id: 'mock-run', message: 'Discovery run queued successfully.' },
+    { method: 'POST', body },
+  )
 
 /* ------------------------------------------------------------------ */
 /* Signals                                                             */
@@ -165,7 +159,7 @@ export const getSignalStats = async (): Promise<SignalStat[]> => {
       icon: Zap,
     }))
   } catch {
-    return []
+    return signalStats
   }
 }
 export const getSignalCategories = async (): Promise<SignalCategory[]> => {
@@ -177,10 +171,10 @@ export const getSignalCategories = async (): Promise<SignalCategory[]> => {
       label: cat,
     }))
   } catch {
-    return []
+    return signalCategories
   }
 }
-export const getSignals = () => withFallback('/signals/', [] as ProblemSignal[])
+export const getSignals = () => withFallback('/signals/', signals as ProblemSignal[])
 
 /* ------------------------------------------------------------------ */
 /* Leads                                                               */
@@ -196,12 +190,7 @@ export const getLeadKpis = async (): Promise<LeadKpi[]> => {
       { id: 'unassigned', label: 'Positive replies', value: String(raw.positive ?? 0), note: '-', icon: Users },
     ]
   } catch {
-    return [
-      { id: 'total', label: 'Total qualified', value: '-', icon: UsersRound },
-      { id: 'high-fit', label: 'High fit · 85+', value: '-', note: '-', tone: 'up', icon: Target },
-      { id: 'act-now', label: 'Act now', value: '-', note: '-', tone: 'hot', icon: Zap },
-      { id: 'unassigned', label: 'Positive replies', value: '-', note: '-', icon: Users },
-    ]
+    return leadKpis
   }
 }
 export const getLeads = async (): Promise<LeadRow[]> => {
@@ -231,7 +220,7 @@ export const getLeads = async (): Promise<LeadRow[]> => {
     })
     return backendLeads
   } catch {
-    return []
+    return leads
   }
 }
 export const getAccountDetail = async (id: string): Promise<AccountDetail | null> => {
@@ -348,15 +337,15 @@ export const postLeadCRMSync = (id: string, body: any) =>
 /* Lists                                                               */
 /* ------------------------------------------------------------------ */
 
-export const getLists = () => withFallback('/lists/', [] as AccountList[])
+export const getLists = () => withFallback('/lists/', accountLists as AccountList[])
 
 /* ------------------------------------------------------------------ */
 /* Campaigns                                                           */
 /* ------------------------------------------------------------------ */
 
-export const getCampaignMetrics = () => withFallback('/campaigns/enrollments/', [] as CampaignMetric[])
-export const getCampaigns = () => withFallback('/campaigns/enrollments/', [] as Campaign[])
-export const getPlaybooks = () => withFallback('/campaigns/enrollments/', [] as Playbook[])
+export const getCampaignMetrics = () => withFallback('/campaigns/enrollments/', campaignMetrics as CampaignMetric[])
+export const getCampaigns = () => withFallback('/campaigns/enrollments/', campaigns as Campaign[])
+export const getPlaybooks = () => withFallback('/campaigns/enrollments/', playbooks as Playbook[])
 
 /* ------------------------------------------------------------------ */
 /* Analytics                                                           */
@@ -427,12 +416,7 @@ export const getFunnelStages = async (): Promise<FunnelStage[]> => {
       width: Math.min(100, Math.max(10, item.conversion)),
     }))
   } catch {
-    return [
-      { id: 'signals', label: 'Signals', count: 0, pct: '-', width: 10 },
-      { id: 'qualified', label: 'Qualified', count: 0, pct: '-', width: 10 },
-      { id: 'contacted', label: 'Contacted', count: 0, pct: '-', width: 10 },
-      { id: 'positive', label: 'Positive reply', count: 0, pct: '-', width: 10 },
-    ]
+    return funnelStages
   }
 }
 export const getProblemPerformance = async (): Promise<ProblemPerformance[]> => {
@@ -450,7 +434,7 @@ export const getProblemPerformance = async (): Promise<ProblemPerformance[]> => 
       pipeline: `£${(item.count || 0) * 15}k`,
     }))
   } catch {
-    return []
+    return problemPerformance
   }
 }
 export const getSourceRanking = async (): Promise<SourceRanking[]> => {
@@ -463,7 +447,7 @@ export const getSourceRanking = async (): Promise<SourceRanking[]> => {
       bar: item.average_score || 70,
     }))
   } catch {
-    return []
+    return sourceRanking
   }
 }
 

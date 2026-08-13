@@ -1,316 +1,251 @@
-import { useState, type FormEvent, type ReactElement } from 'react'
-import {
-  Check,
-  ChevronDown,
-  CircleHelp,
-  Clock3,
-  Layers,
-  Lightbulb,
-  MapPin,
-  Plus,
-  Radar,
-  Sparkles,
-  Target,
-  UsersRound,
-} from 'lucide-react'
-import { discoveryProblem } from '../api/mockData'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ArrowRight, Check, MapPin, Radar, Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { postDiscover } from '../api/dashboard'
-import type { EvidenceKind } from '../types'
+import { DISCOVER } from '../constants'
+import type { DiscoveryRun, DiscoveryStartResponse, DiscoveryStageId } from '../types'
 
-const steps = [
-  { label: 'Define the problem', detail: 'What operational pain do you solve?' },
-  { label: 'Choose evidence', detail: 'What proves the problem exists?' },
-  { label: 'Review matches', detail: 'See accounts and reasoning' },
-]
+/**
+ * Mock completion numbers shown when the backend is unreachable.
+ * A real backend streams these via the `prospecting.run.completed`
+ * WebSocket event (broadcast_completion in prospecting/tasks.py).
+ */
+const MOCK_SUMMARY = { discovered: 12, new: 9, duplicates: 3 }
+
+const STAGE_ORDER: DiscoveryStageId[] = DISCOVER.runStages.map((step) => step.stage)
 
 export function DiscoverPage() {
-  const [statement, setStatement] = useState(discoveryProblem.statement)
-  const [location, setLocation] = useState(discoveryProblem.market.locations)
-  const [selected, setSelected] = useState<EvidenceKind[]>(['hiring', 'technology', 'change'])
-  const [problemChip, setProblemChip] = useState('Manual route planning')
+  const [problem, setProblem] = useState('')
+  const [location, setLocation] = useState('')
+  const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [run, setRun] = useState<DiscoveryRun | null>(null)
+  const timers = useRef<number[]>([])
 
-  const toggleEvidence = (id: EvidenceKind) => {
-    setSelected((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    )
-  }
+  useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), [])
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
-    setSubmitting(true)
-    postDiscover({
-      keyword: statement,
-      location: location
-    }).then(() => {
-      setSubmitting(false)
-      alert("Discovery run initiated on background worker successfully!")
-    }).catch(() => {
-      setSubmitting(false)
+  const startRun = (keyword: string, place: string, response: DiscoveryStartResponse) => {
+    setRun({ runId: response.run_id, keyword, location: place, status: 'running', progress: 0, stage: 'queued' })
+
+    DISCOVER.runStages.forEach((step, index) => {
+      const delay = 600 + index * 700
+      timers.current.push(
+        window.setTimeout(() => {
+          setRun((current) => {
+            if (!current) return current
+            if (index === DISCOVER.runStages.length - 1) {
+              return { ...current, status: 'completed', progress: step.progress, stage: step.stage }
+            }
+            return { ...current, progress: step.progress, stage: step.stage }
+          })
+        }, delay),
+      )
     })
   }
 
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    const keyword = problem.trim()
+    const place = location.trim()
+
+    if (!keyword) {
+      setError(DISCOVER.problemRequired)
+      return
+    }
+    if (!place) {
+      setError(DISCOVER.locationRequired)
+      return
+    }
+    setError('')
+    setSubmitting(true)
+    try {
+      const response = await postDiscover({ keyword, location: place })
+      startRun(keyword, place, response)
+    } catch {
+      setError(DISCOVER.failedDetail)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const reset = () => {
+    timers.current.forEach((id) => window.clearTimeout(id))
+    timers.current = []
+    setRun(null)
+  }
+
   return (
-    <div className="page page-enter discover-page">
+    <div className="page page-enter">
       <header className="page-header">
         <div className="page-heading-copy">
-          <span className="page-eyebrow">Problem-first discovery</span>
-          <h1>Find companies that need what you sell.</h1>
-          <p>
-            Describe the operational pain you solve. Nomad translates it into observable
-            evidence, finds matching companies, and explains every recommendation.
-          </p>
-        </div>
-        <div className="page-actions">
-          <button className="button button-secondary" type="button">
-            <Clock3 size={14} /> Run history
-          </button>
+          <span className="page-eyebrow">{DISCOVER.eyebrow}</span>
+          <h1>{DISCOVER.title}</h1>
+          <p>{DISCOVER.description}</p>
         </div>
       </header>
 
-      <div className="stepper card" aria-label="Discovery process">
-        {steps.map((step, index) => (
-          <Step key={step.label} index={index} length={steps.length} active={index === 0} step={step} />
-        ))}
-      </div>
+      {run ? (
+        <RunPanel run={run} onReset={reset} />
+      ) : (
+        <form className="discovery-layout" onSubmit={submit} noValidate>
+          <section className="card discovery-card">
+            <h2>Start a discovery</h2>
+            <p>Two questions are all we need. You can edit the text or pick an example.</p>
 
-      <form className="discover-layout" onSubmit={submit}>
-        <div className="discover-main">
-          <section className="card form-card">
-            <div className="numbered-heading">
-              <span>01</span>
-              <div>
-                <h2>Start with the pain, not the industry</h2>
-                <p>Use the language your customer would use in an operations meeting.</p>
-              </div>
-            </div>
-            <label className="field-label" htmlFor="problem-statement">
-              Problem statement <span>Required</span>
-            </label>
-            <div className="problem-input-wrap">
+            {error && <div className="discovery-error">{error}</div>}
+
+            <div className="discovery-field">
+              <label htmlFor="discovery-problem">
+                {DISCOVER.problemLabel} <span>(required)</span>
+              </label>
               <textarea
-                id="problem-statement"
-                value={statement}
-                onChange={(event) => setStatement(event.target.value)}
+                id="discovery-problem"
+                className="discovery-input"
+                value={problem}
+                onChange={(event) => setProblem(event.target.value)}
+                placeholder={DISCOVER.problemPlaceholder}
               />
-              <span className="ai-label">
-                <Sparkles size={10} /> AI refined
-              </span>
-            </div>
-            <div className="suggestion-row">
-              <span>Common problems</span>
-              <div className="chip-row">
-                {discoveryProblem.commonProblems.map((problem) => (
-                  <button
-                    key={problem}
-                    type="button"
-                    className={`select-chip ${problemChip === problem ? 'chip-selected' : ''}`}
-                    onClick={() => {
-                      setProblemChip(problem)
-                      setStatement(
-                        `Teams are losing time and margin to ${problem.toLowerCase()} as delivery volume grows.`,
-                      )
-                    }}
-                  >
-                    {problem}
+              <span className="discovery-hint">A short sentence in plain words works best.</span>
+              <div className="discovery-examples">
+                {DISCOVER.problemExamples.map((example) => (
+                  <button key={example} type="button" onClick={() => setProblem(example)}>
+                    {example}
                   </button>
                 ))}
               </div>
             </div>
-          </section>
 
-          <section className="card form-card">
-            <div className="numbered-heading">
-              <span>02</span>
-              <div>
-                <h2>Choose the evidence Nomad should look for</h2>
-                <p>Layer several signals to reduce false positives.</p>
+            <div className="discovery-field">
+              <label htmlFor="discovery-location">
+                {DISCOVER.locationLabel} <span>(required)</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <MapPin
+                  size={16}
+                  style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-2)' }}
+                />
+                <input
+                  id="discovery-location"
+                  className="discovery-input"
+                  style={{ paddingLeft: 40 }}
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                  placeholder={DISCOVER.locationPlaceholder}
+                />
               </div>
-              <button className="hint-button" type="button" aria-label="Evidence help">
-                <CircleHelp size={15} />
-              </button>
-            </div>
-            <div className="evidence-grid">
-              {discoveryProblem.evidence.map((option) => {
-                const Icon = option.icon
-                const active = selected.includes(option.id)
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className={`evidence-option ${active ? 'evidence-selected' : ''}`}
-                    onClick={() => toggleEvidence(option.id)}
-                    aria-pressed={active}
-                  >
-                    <span className="evidence-icon">
-                      <Icon size={16} />
-                    </span>
-                    <span>
-                      <strong>{option.title}</strong>
-                      <small>{option.description}</small>
-                    </span>
-                    <i>{active && <Check size={12} strokeWidth={3} />}</i>
+              <div className="discovery-examples">
+                {DISCOVER.locationExamples.map((example) => (
+                  <button key={example} type="button" onClick={() => setLocation(example)}>
+                    {example}
                   </button>
-                )
-              })}
-            </div>
-          </section>
-
-          <section className="card form-card">
-            <div className="numbered-heading">
-              <span>03</span>
-              <div>
-                <h2>Define your market</h2>
-                <p>Keep it broad enough for Nomad to find unexpected fits.</p>
+                ))}
               </div>
             </div>
-            <div className="form-grid three">
-              <label>
-                <span className="field-label">Target market</span>
-                <div className="input-with-icon">
-                  <MapPin size={13} />
-                  <select defaultValue={discoveryProblem.market.target}>
-                    {discoveryProblem.market.firmographicOptions.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={12} />
-                </div>
-              </label>
-              <label>
-                <span className="field-label">Locations</span>
-                <div className="input-with-icon">
-                  <MapPin size={13} />
-                  <input value={location} onChange={(event) => setLocation(event.target.value)} />
-                </div>
-              </label>
-              <label>
-                <span className="field-label">Company size</span>
-                <div className="input-with-icon">
-                  <UsersRound size={13} />
-                  <select defaultValue={discoveryProblem.market.companySize}>
-                    {discoveryProblem.market.sizeOptions.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={12} />
-                </div>
-              </label>
-            </div>
-            <div className="advanced-row">
-              <button type="button">
-                <Plus size={12} /> Advanced firmographics
-              </button>
-              <span>Industries, revenue, ownership, and exclusions</span>
-            </div>
-          </section>
 
-          <div className="discover-submit-row">
-            <div>
-              <span>
-                Estimated reach: <strong>{discoveryProblem.estimatedReach}</strong>
-              </span>
-            </div>
-            <button className="button button-primary discover-button" type="submit" disabled={submitting}>
-              {submitting ? <Spinner /> : <Radar size={15} />}
-              {submitting ? 'Finding matches…' : 'Discover matching accounts'}
+            <button className="button button-primary discovery-submit" type="submit" disabled={submitting}>
+              {submitting ? <span className="button-spinner" aria-hidden="true" /> : <Radar size={16} />}
+              {submitting ? DISCOVER.submittingLabel : DISCOVER.submitLabel}
             </button>
-          </div>
-        </div>
+          </section>
 
-        <aside className="discover-aside">
-          <section className="card model-card">
-            <span className="model-badge">
-              <Sparkles size={11} /> Live discovery model
-            </span>
-            <h3>What Nomad will look for</h3>
-            <p>We turn your problem statement into a chain of observable evidence.</p>
-            <div className="logic-chain">
-              <div>
-                <span>
-                  <Target size={14} />
-                </span>
-                <p>
-                  <strong>Operational problem</strong>
-                  <small>{discoveryProblem.model.problem}</small>
-                </p>
-              </div>
-              <i />
-              <div>
-                <span>
-                  <Layers size={14} />
-                </span>
-                <p>
-                  <strong>Evidence bundle</strong>
-                  <small>{discoveryProblem.model.evidenceBundle}</small>
-                </p>
-              </div>
-              <i />
-              <div>
-                <span>
-                  <Check size={14} />
-                </span>
-                <p>
-                  <strong>Qualified account</strong>
-                  <small>{discoveryProblem.model.qualified}</small>
-                </p>
-              </div>
-            </div>
-            <div className="model-quality">
-              <span>{discoveryProblem.model.precisionLabel}</span>
-              <strong>{discoveryProblem.model.precision}</strong>
-              <div>
-                <i style={{ width: `${discoveryProblem.model.precisionBar}%` }} />
-              </div>
-              <small>{discoveryProblem.model.precisionNote}</small>
-            </div>
-          </section>
-          <section className="aside-tip">
-            <span>
-              <Lightbulb size={15} />
-            </span>
-            <div>
-              <strong>Nomad tip</strong>
-              <p>{discoveryProblem.tip}</p>
-              <button type="button">
-                See examples <ChevronDown size={11} />
-              </button>
-            </div>
-          </section>
-        </aside>
-      </form>
+          <aside className="card discovery-steps">
+            <h3>
+              <Sparkles size={15} style={{ verticalAlign: -2, marginRight: 6, color: 'var(--lime-dark)' }} />
+              {DISCOVER.howTitle}
+            </h3>
+            <ol>
+              {DISCOVER.howSteps.map((step) => (
+                <li key={step.title}>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <small>{step.detail}</small>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        </form>
+      )}
     </div>
   )
 }
 
-function Step({
-  index,
-  length,
-  active,
-  step,
-}: {
-  index: number
-  length: number
-  active: boolean
-  step: { label: string; detail: string }
-}): ReactElement {
-  void length
-  return (
-    <>
-      {index > 0 && <i />}
-      <div className={active ? 'step-active' : ''}>
-        <span>{index + 1}</span>
-        <p>
-          <strong>{step.label}</strong>
-          <small>{step.detail}</small>
-        </p>
-      </div>
-    </>
-  )
-}
+function RunPanel({ run, onReset }: { run: DiscoveryRun; onReset: () => void }) {
+  const completed = run.status === 'completed'
+  const failed = run.status === 'failed'
+  const currentStageIndex = Math.max(0, STAGE_ORDER.indexOf(run.stage))
+  const currentStep = DISCOVER.runStages[currentStageIndex]
 
-function Spinner() {
   return (
-    <span className="button-spinner" aria-hidden="true" style={{ width: 14, height: 14 }} />
+    <section className="card discovery-run">
+      <div className="discovery-run-head">
+        <strong>{completed ? DISCOVER.completeTitle : failed ? DISCOVER.failedTitle : DISCOVER.runStarted}</strong>
+        <span className="discovery-run-id">run #{run.runId.slice(0, 8)}</span>
+      </div>
+
+      <p className="discovery-run-context">
+        {DISCOVER.runFor} <strong>“{run.keyword}”</strong> near <strong>“{run.location}”</strong>.
+      </p>
+
+      {!completed && !failed && (
+        <>
+          <div className="discovery-progress">
+            <span style={{ width: `${run.progress}%` }} />
+          </div>
+          <div className="discovery-progress-label">
+            <span>
+              {DISCOVER.runStagePrefix} {Math.min(currentStageIndex + 1, STAGE_ORDER.length)} of {STAGE_ORDER.length} —{' '}
+              {currentStep.message}
+            </span>
+            <span>{run.progress}%</span>
+          </div>
+        </>
+      )}
+
+      <ul className="discovery-stages">
+        {DISCOVER.runStages.map((step, index) => {
+          const state = index < currentStageIndex || completed ? 'done' : index === currentStageIndex && !completed ? 'active' : ''
+          return (
+            <li key={step.stage} className={state}>
+              <i>{state === 'done' && <Check size={12} strokeWidth={3} />}</i>
+              {step.message}
+            </li>
+          )
+        })}
+      </ul>
+
+      {completed && (
+        <>
+          <div className="discovery-summary">
+            <div>
+              <strong>{MOCK_SUMMARY.discovered}</strong>
+              <small>{DISCOVER.foundLabel}</small>
+            </div>
+            <div>
+              <strong>{MOCK_SUMMARY.new}</strong>
+              <small>{DISCOVER.newLabel}</small>
+            </div>
+            <div>
+              <strong>{MOCK_SUMMARY.duplicates}</strong>
+              <small>{DISCOVER.duplicateLabel}</small>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link to="/leads" className="button button-primary">
+              {DISCOVER.viewLeads} <ArrowRight size={15} />
+            </Link>
+            <button className="button button-secondary" type="button" onClick={onReset}>
+              {DISCOVER.startAnother}
+            </button>
+          </div>
+        </>
+      )}
+
+      {failed && (
+        <button className="button button-secondary" type="button" onClick={onReset}>
+          {DISCOVER.tryAgain}
+        </button>
+      )}
+    </section>
   )
 }

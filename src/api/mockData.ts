@@ -268,7 +268,6 @@ export const signalStats: SignalStat[] = [
 ]
 
 export const signalCategories: SignalCategory[] = [
-  { id: 'all', label: 'All signals' },
   { id: 'routing', label: 'Routing & dispatch' },
   { id: 'workforce', label: 'Workforce operations' },
   { id: 'fleet', label: 'Fleet reliability' },

@@ -3,23 +3,20 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
-  Columns3,
   Download,
-  MoreHorizontal,
-  Plus,
   Search,
-  SlidersHorizontal,
   Target,
   Users,
   UsersRound,
-  X,
   Zap,
   type LucideIcon,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getLeads, getLeadKpis } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
-import type { BuyingWindow, LeadKpi } from '../types'
+import type { BuyingWindow, LeadKpi, LeadRow } from '../types'
+
+const PAGE_SIZE = 6
 
 const kpiIcon: Record<LeadKpi['id'], LucideIcon> = {
   total: UsersRound,
@@ -45,6 +42,28 @@ const problemOptions = [
   'Unplanned fleet downtime',
 ]
 
+function downloadLeads(leads: LeadRow[]) {
+  const header = ['Account', 'Industry', 'Location', 'Problem', 'Fit score', 'Buying window']
+  const body = leads.map((lead) => [
+    lead.name,
+    lead.industry,
+    lead.location,
+    lead.problem,
+    lead.fitScore,
+    lead.window,
+  ])
+  const csv = [header, ...body]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'nomad-leads.csv'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export function LeadsPage() {
   const { data: leadsList } = useAsyncData(getLeads, [])
   const { data: kpisList } = useAsyncData(getLeadKpis, [])
@@ -66,7 +85,11 @@ export function LeadsPage() {
     })
   }, [query, problem, minScore, leadsList])
 
-  const allChecked = filtered.length > 0 && filtered.every((lead) => selected.has(lead.id))
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, pageCount)
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  const allChecked = pageItems.length > 0 && pageItems.every((lead) => selected.has(lead.id))
 
   const toggleRow = (id: string) => {
     setSelected((current) => {
@@ -80,8 +103,8 @@ export function LeadsPage() {
   const toggleAll = () => {
     setSelected((current) => {
       const next = new Set(current)
-      if (allChecked) filtered.forEach((lead) => next.delete(lead.id))
-      else filtered.forEach((lead) => next.add(lead.id))
+      if (allChecked) pageItems.forEach((lead) => next.delete(lead.id))
+      else pageItems.forEach((lead) => next.add(lead.id))
       return next
     })
   }
@@ -93,23 +116,28 @@ export function LeadsPage() {
           <span className="page-eyebrow">Qualified accounts</span>
           <h1>Leads with a reason to buy.</h1>
           <p>
-            Every account is ranked by problem fit, observable evidence, and buying-window
-            timing — so your team knows who to contact and why.
+            Every account is ranked by problem fit, the evidence we found, and how soon they
+            might buy — so your team knows who to contact and why.
           </p>
         </div>
         <div className="page-actions">
-          <button className="button button-secondary" type="button">
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={() => downloadLeads(filtered)}
+            disabled={filtered.length === 0}
+          >
             <Download size={14} /> Export
           </button>
-          <button className="button button-primary" type="button">
-            <Plus size={15} /> Add account
-          </button>
+          <Link to="/discover" className="button button-primary">
+            Find more leads
+          </Link>
         </div>
       </header>
 
       <section className="lead-kpi-strip card">
         {kpisList.map((kpi, index) => {
-          const Icon = kpiIcon[kpi.id as any] || UsersRound
+          const Icon = kpiIcon[kpi.id] || UsersRound
           return (
             <ReactFragment key={kpi.id} index={index}>
               <div>
@@ -139,13 +167,23 @@ export function LeadsPage() {
             <Search size={14} />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value)
+                setPage(1)
+              }}
               placeholder="Search account, industry, or location…"
               aria-label="Search accounts"
             />
           </label>
           <label className="toolbar-select">
-            <select value={problem} onChange={(event) => setProblem(event.target.value)} aria-label="Filter by problem">
+            <select
+              value={problem}
+              onChange={(event) => {
+                setProblem(event.target.value)
+                setPage(1)
+              }}
+              aria-label="Filter by problem"
+            >
               {['All problems', ...problemOptions].map((option) => (
                 <option key={option}>{option}</option>
               ))}
@@ -153,7 +191,14 @@ export function LeadsPage() {
             <ChevronDown size={12} />
           </label>
           <label className="toolbar-select">
-            <select value={minScore} onChange={(event) => setMinScore(event.target.value)} aria-label="Filter by score">
+            <select
+              value={minScore}
+              onChange={(event) => {
+                setMinScore(event.target.value)
+                setPage(1)
+              }}
+              aria-label="Filter by score"
+            >
               <option>All scores</option>
               <option value="85">85+ fit</option>
               <option value="80">80+ fit</option>
@@ -161,31 +206,9 @@ export function LeadsPage() {
             </select>
             <ChevronDown size={12} />
           </label>
-          <button className="filter-button" type="button">
-            <SlidersHorizontal size={13} /> More filters <span>3</span>
-          </button>
-          <button className="columns-button" type="button" aria-label="Choose columns">
-            <Columns3 size={15} />
-          </button>
-        </div>
-
-        <div className="active-filters">
-          <span>Active filters</span>
-          <button type="button">
-            UK <X size={10} />
-          </button>
-          <button type="button">
-            51–1,000 employees <X size={10} />
-          </button>
-          <button type="button">
-            Evidence in last 90 days <X size={10} />
-          </button>
-          <button type="button" className="clear-filters">
-            Clear all
-          </button>
-          <small>
+          <span className="toolbar-count">
             {filtered.length} of {leadsList.length} accounts
-          </small>
+          </span>
         </div>
 
         <div className="table-wrap lead-table-wrap">
@@ -208,7 +231,7 @@ export function LeadsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((lead) => {
+              {pageItems.map((lead) => {
                 const checked = selected.has(lead.id)
                 return (
                   <tr key={lead.id}>
@@ -264,14 +287,9 @@ export function LeadsPage() {
                       <span className="last-seen">{lead.lastSeen}</span>
                     </td>
                     <td>
-                      <div className="row-actions">
-                        <Link to={`/leads/${lead.id}`} className="icon-button mini" aria-label={`Open ${lead.name}`}>
-                          <ArrowRight size={14} />
-                        </Link>
-                        <button type="button" aria-label="More actions">
-                          <MoreHorizontal size={15} />
-                        </button>
-                      </div>
+                      <Link to={`/leads/${lead.id}`} className="icon-button mini" aria-label={`Open ${lead.name}`}>
+                        <ArrowRight size={14} />
+                      </Link>
                     </td>
                   </tr>
                 )
@@ -280,34 +298,31 @@ export function LeadsPage() {
           </table>
           {filtered.length === 0 && (
             <div className="table-empty">
-              <p>No accounts match your filters.</p>
+              <p>No accounts match your search.</p>
             </div>
           )}
         </div>
 
         <div className="table-footer">
           <span>
-            Showing 1–{filtered.length} of {leadsList.length}
+            Showing {filtered.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}–
+            {Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
           </span>
           <div>
-            <button type="button" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+            <button type="button" disabled={safePage === 1} onClick={() => setPage(safePage - 1)}>
               Previous
             </button>
-            {[1, 2, 3].map((number) => (
+            {Array.from({ length: pageCount }, (_, i) => i + 1).map((number) => (
               <button
                 key={number}
                 type="button"
-                className={page === number ? 'current' : ''}
+                className={safePage === number ? 'current' : ''}
                 onClick={() => setPage(number)}
               >
                 {number}
               </button>
             ))}
-            <span>…</span>
-            <button type="button" onClick={() => setPage(84)}>
-              84
-            </button>
-            <button type="button" onClick={() => setPage((p) => Math.min(84, p + 1))}>
+            <button type="button" disabled={safePage === pageCount} onClick={() => setPage(safePage + 1)}>
               Next
             </button>
           </div>

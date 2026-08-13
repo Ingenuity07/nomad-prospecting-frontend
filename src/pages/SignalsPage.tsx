@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ClipboardCheck, Eye, EyeOff, Gauge, Radar, Route, Search, SlidersHorizontal, Target, TimerReset, TrendingUp, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, ClipboardCheck, Eye, EyeOff, Gauge, Radar, Route, Search, Target, TimerReset, TrendingUp, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
 import { getSignalStats, getSignalCategories, getSignals } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
-import type { Momentum, ProblemSignal, SignalStat } from '../types'
+import type { Momentum, SignalStat } from '../types'
 
 const statIcon: Record<SignalStat['tone'], typeof Radar> = {
   lime: Radar,
@@ -31,21 +31,16 @@ export function SignalsPage() {
     return [{ id: 'all', label: 'All signals' }, ...categoriesList]
   }, [categoriesList])
 
-  const categoryFor = (signal: ProblemSignal): string => {
-    const match = categoriesList.find(
-      (cat) => cat.label === signal.category,
-    )
-    return match?.id ?? 'all'
-  }
-
   const [watched, setWatched] = useState<Set<string>>(() => new Set())
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return signalsList.filter((signal) => {
+      const categoryForSignal =
+        categoriesList.find((cat) => cat.label === signal.category)?.id ?? 'all'
       const matchesQuery =
         !q || `${signal.title} ${signal.description} ${signal.category}`.toLowerCase().includes(q)
-      const matchesCategory = category === 'all' || categoryFor(signal) === category
+      const matchesCategory = category === 'all' || categoryForSignal === category
       return matchesQuery && matchesCategory
     })
   }, [query, category, signalsList, categoriesList])
@@ -69,11 +64,6 @@ export function SignalsPage() {
             Build a repeatable point of view around the pains you solve. Each signal combines
             observable evidence, market reach, and buying-window momentum.
           </p>
-        </div>
-        <div className="page-actions">
-          <button className="button button-primary" type="button">
-            <Radar size={15} /> Create problem signal
-          </button>
         </div>
       </header>
 
@@ -120,9 +110,6 @@ export function SignalsPage() {
             </button>
           ))}
         </div>
-        <button className="filter-button" type="button">
-          <SlidersHorizontal size={13} /> Filters <span>2</span>
-        </button>
       </div>
 
       <section className="signal-card-grid">

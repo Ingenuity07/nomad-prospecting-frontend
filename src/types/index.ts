@@ -97,6 +97,38 @@ export interface DiscoverySuggestion {
   label: string
 }
 
+export type DiscoveryStageId =
+  | 'queued'
+  | 'discovering'
+  | 'resolving'
+  | 'researching'
+  | 'completed'
+  | 'failed'
+
+/** POST /discover/ response (ProspectingDiscoverAPIView). */
+export interface DiscoveryStartResponse {
+  status: string
+  run_id: string
+  message: string
+}
+
+/** One progress step of a discovery run (mirrors backend broadcast_progress). */
+export interface DiscoveryProgressStep {
+  stage: DiscoveryStageId
+  progress: number
+  message: string
+}
+
+/** Front-end state of an in-flight discovery run. */
+export interface DiscoveryRun {
+  runId: string
+  keyword: string
+  location: string
+  status: 'running' | 'completed' | 'failed'
+  progress: number
+  stage: DiscoveryStageId
+}
+
 /* ------------------------------------------------------------------ */
 /* Signals                                                             */
 /* ------------------------------------------------------------------ */

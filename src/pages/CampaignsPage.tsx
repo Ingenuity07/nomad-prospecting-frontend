@@ -2,11 +2,9 @@ import { useState } from 'react'
 import {
   ArrowRight,
   BarChart3,
-  ChevronDown,
   Clock3,
   Handshake,
   MailCheck,
-  MoreHorizontal,
   Pause,
   Play,
   Plus,
@@ -17,6 +15,7 @@ import {
   Wrench,
   type LucideIcon,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { campaignInsight } from '../api/mockData'
 import { getCampaignMetrics, getCampaigns, getPlaybooks } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
@@ -71,9 +70,9 @@ export function CampaignsPage() {
           </p>
         </div>
         <div className="page-actions">
-          <button className="button button-primary" type="button">
+          <Link to="/campaigns/new" className="button button-primary">
             <Plus size={15} /> New campaign
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -115,9 +114,6 @@ export function CampaignsPage() {
               <span className="eyebrow-label">Active motions</span>
               <h2>Your campaigns</h2>
             </div>
-            <button className="toolbar-select bare" type="button">
-              All statuses <ChevronDown size={12} />
-            </button>
           </div>
           <div className="campaign-list">
             {campaignsList.map((campaign) => {
@@ -163,16 +159,10 @@ export function CampaignsPage() {
                   >
                     {isPaused ? <Play size={12} /> : <Pause size={12} />}
                   </button>
-                  <button className="quiet-icon" type="button" aria-label={`Options for ${campaign.name}`}>
-                    <MoreHorizontal size={15} />
-                  </button>
                 </div>
               )
             })}
           </div>
-          <button className="campaign-all-link" type="button">
-            View completed campaigns <ArrowRight size={12} />
-          </button>
         </article>
 
         <aside className="card campaign-insight-card">
@@ -199,9 +189,9 @@ export function CampaignsPage() {
               </i>
             </div>
           </div>
-          <button type="button">
-            <BarChart3 size={13} /> View message analysis
-          </button>
+          <Link to="/analytics" className="campaign-insight-link">
+            <BarChart3 size={13} /> View message analysis <ArrowRight size={12} />
+          </Link>
         </aside>
       </section>
 
@@ -211,9 +201,9 @@ export function CampaignsPage() {
             <span className="eyebrow-label">Recommended for your signals</span>
             <h2>Problem playbooks</h2>
           </div>
-          <button className="text-link" type="button">
-            Browse all <ArrowRight size={13} />
-          </button>
+          <Link to="/campaigns/new" className="text-link">
+            New campaign <ArrowRight size={13} />
+          </Link>
         </div>
         <div className="playbook-grid">
           {playbooksList.map((playbook) => {
@@ -230,9 +220,9 @@ export function CampaignsPage() {
                   <span>{playbook.steps} steps</span>
                   <span>{playbook.avgReply} avg. reply</span>
                 </div>
-                <button type="button">
+                <Link to="/campaigns/new">
                   Use playbook <ArrowRight size={11} />
-                </button>
+                </Link>
               </article>
             )
           })}
