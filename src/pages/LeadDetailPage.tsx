@@ -17,7 +17,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { getAccountDetail, postLeadFeedback, postLeadCRMSync } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
@@ -36,8 +36,9 @@ export function LeadDetailPage() {
   const [synced, setSynced] = useState(false)
   const [feedbackSelected, setFeedbackSelected] = useState<string | null>(null)
 
+  const fetchAccountDetail = useCallback(() => getAccountDetail(leadId || ''), [leadId])
   const { data: account, loading } = useAsyncData<AccountDetail | null>(
-    () => getAccountDetail(leadId || ''),
+    fetchAccountDetail,
     null
   )
 
