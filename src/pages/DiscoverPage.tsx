@@ -14,6 +14,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { discoveryProblem } from '../api/mockData'
+import { postDiscover } from '../api/dashboard'
 import type { EvidenceKind } from '../types'
 
 const steps = [
@@ -37,7 +38,15 @@ export function DiscoverPage() {
   const submit = (event: FormEvent) => {
     event.preventDefault()
     setSubmitting(true)
-    window.setTimeout(() => setSubmitting(false), 1400)
+    postDiscover({
+      keyword: problemChip,
+      location: 'Leeds'
+    }).then(() => {
+      setSubmitting(false)
+      alert("Discovery run initiated on background worker successfully!")
+    }).catch(() => {
+      setSubmitting(false)
+    })
   }
 
   return (

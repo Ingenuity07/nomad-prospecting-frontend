@@ -17,7 +17,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { leadKpis, leads } from '../api/mockData'
+import { getLeads, getLeadKpis } from '../api/dashboard'
+import { useAsyncData } from '../hooks/useAsyncData'
 import type { BuyingWindow, LeadKpi } from '../types'
 
 const kpiIcon: Record<LeadKpi['id'], LucideIcon> = {
@@ -45,6 +46,9 @@ const problemOptions = [
 ]
 
 export function LeadsPage() {
+  const { data: leadsList } = useAsyncData(getLeads, [])
+  const { data: kpisList } = useAsyncData(getLeadKpis, [])
+
   const [query, setQuery] = useState('')
   const [problem, setProblem] = useState('All problems')
   const [minScore, setMinScore] = useState('All scores')
@@ -53,14 +57,14 @@ export function LeadsPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return leads.filter((lead) => {
+    return leadsList.filter((lead) => {
       const matchesQuery =
         !q || `${lead.name} ${lead.industry} ${lead.location}`.toLowerCase().includes(q)
       const matchesProblem = problem === 'All problems' || lead.problem === problem
       const matchesScore = minScore === 'All scores' || lead.fitScore >= Number(minScore)
       return matchesQuery && matchesProblem && matchesScore
     })
-  }, [query, problem, minScore])
+  }, [query, problem, minScore, leadsList])
 
   const allChecked = filtered.length > 0 && filtered.every((lead) => selected.has(lead.id))
 
@@ -104,8 +108,8 @@ export function LeadsPage() {
       </header>
 
       <section className="lead-kpi-strip card">
-        {leadKpis.map((kpi, index) => {
-          const Icon = kpiIcon[kpi.id]
+        {kpisList.map((kpi, index) => {
+          const Icon = kpiIcon[kpi.id as any] || UsersRound
           return (
             <ReactFragment key={kpi.id} index={index}>
               <div>
@@ -180,7 +184,7 @@ export function LeadsPage() {
             Clear all
           </button>
           <small>
-            {filtered.length} of {leads.length} accounts
+            {filtered.length} of {leadsList.length} accounts
           </small>
         </div>
 
@@ -283,7 +287,7 @@ export function LeadsPage() {
 
         <div className="table-footer">
           <span>
-            Showing 1–{filtered.length} of {leads.length}
+            Showing 1–{filtered.length} of {leadsList.length}
           </span>
           <div>
             <button type="button" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>

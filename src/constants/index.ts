@@ -22,8 +22,8 @@ export const APP = {
  * to the bundled mock data (src/api/mockData.ts).
  */
 export const API = {
-  baseUrl: (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'https://api.nomad-prospecting.example.com',
-  timeoutMs: 4500,
+  baseUrl: (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v3/prospecting',
+  timeoutMs: 15000,
   endpoints: {
     dashboard: '/dashboard',
     metrics: '/dashboard/metrics',

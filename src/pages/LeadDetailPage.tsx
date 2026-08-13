@@ -17,9 +17,11 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAccountById } from '../api/accounts'
-import type { EvidenceItem } from '../types'
+import { getAccountDetail, postLeadFeedback, postLeadCRMSync } from '../api/dashboard'
+import { useAsyncData } from '../hooks/useAsyncData'
+import type { EvidenceItem, AccountDetail } from '../types'
 
 const evidenceToneIcon: Record<EvidenceItem['tone'], LucideIcon> = {
   lime: Users,
@@ -30,7 +32,43 @@ const evidenceToneIcon: Record<EvidenceItem['tone'], LucideIcon> = {
 
 export function LeadDetailPage() {
   const { leadId } = useParams<{ leadId: string }>()
-  const account = leadId ? getAccountById(leadId) : undefined
+  const [syncing, setSyncing] = useState(false)
+  const [synced, setSynced] = useState(false)
+  const [feedbackSelected, setFeedbackSelected] = useState<string | null>(null)
+
+  const { data: account, loading } = useAsyncData<AccountDetail | null>(
+    () => getAccountDetail(leadId || ''),
+    null
+  )
+
+  const handleSyncCRM = () => {
+    if (!leadId) return
+    setSyncing(true)
+    postLeadCRMSync(leadId, { owner_email: "priya@nomad.ai" })
+      .then(() => {
+        setSynced(true)
+        setSyncing(false)
+      })
+      .catch(() => {
+        setSyncing(false)
+      })
+  }
+
+  const handleFeedback = (feedbackType: string) => {
+    if (!leadId) return
+    setFeedbackSelected(feedbackType)
+    postLeadFeedback(leadId, { feedback_type: feedbackType, notes: "Submitted via UI" })
+  }
+
+  if (loading) {
+    return (
+      <div className="page page-enter">
+        <div className="card placeholder-empty" style={{ maxWidth: 520, margin: '60px auto' }}>
+          <h2>Loading account...</h2>
+        </div>
+      </div>
+    )
+  }
 
   if (!account) {
     return (
@@ -77,6 +115,14 @@ export function LeadDetailPage() {
           </div>
         </div>
         <div className="page-actions">
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={handleSyncCRM}
+            disabled={syncing || synced}
+          >
+            {syncing ? 'Syncing...' : synced ? 'Synced ✓' : 'Sync to CRM'}
+          </button>
           <button className="button button-secondary" type="button">
             <Plus size={14} /> Add to list
           </button>
@@ -90,12 +136,26 @@ export function LeadDetailPage() {
       </header>
 
       <section className="account-score-banner card">
-        <div className="score-summary">
+        <div className="score-summary" style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '16px' }}>
           <span className="score-badge score-high score-large">{account.score}</span>
-          <div>
+          <div style={{ flex: 1 }}>
             <span>Nomad opportunity score</span>
             <strong>{account.scoreLabel}</strong>
             <small>{account.scoreNote}</small>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '11px', opacity: 0.6 }}>Audit Feedback:</span>
+            {['GOOD_SIGNAL', 'WRONG_MATCH', 'BAD_SIGNAL'].map((type) => (
+              <button
+                key={type}
+                type="button"
+                className={`button button-secondary small-button ${feedbackSelected === type ? 'button-primary' : ''}`}
+                style={{ padding: '4px 8px', fontSize: '11px', borderRadius: '4px', textTransform: 'capitalize' }}
+                onClick={() => handleFeedback(type)}
+              >
+                {type.toLowerCase().replace('_', ' ')}
+              </button>
+            ))}
           </div>
         </div>
         <div className="score-factors">

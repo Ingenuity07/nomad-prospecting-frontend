@@ -7,14 +7,33 @@ import { API } from '../constants'
  * - Throws on network errors / non-2xx / timeout; callers decide how to
  *   handle failure (typically by falling back to mock data).
  */
-export async function apiFetch<T>(path: string): Promise<T> {
+export interface FetchOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  headers?: Record<string, string>
+  body?: any
+}
+
+export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), API.timeoutMs)
 
+  const { method = 'GET', headers = {}, body } = options
+  const requestHeaders: Record<string, string> = {
+    Accept: 'application/json',
+    ...headers,
+  }
+
+  let requestBody: string | undefined = undefined
+  if (body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json'
+    requestBody = JSON.stringify(body)
+  }
+
   try {
     const response = await fetch(`${API.baseUrl}${path}`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
+      method,
+      headers: requestHeaders,
+      body: requestBody,
       signal: controller.signal,
     })
 

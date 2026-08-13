@@ -1,7 +1,24 @@
 import { useMemo, useState } from 'react'
-import { ArrowRight, ClipboardCheck, Eye, EyeOff, Gauge, Radar, Route, Search, SlidersHorizontal, Target, TimerReset, TrendingUp, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
+import {
+  ArrowRight,
+  ClipboardCheck,
+  Eye,
+  EyeOff,
+  Gauge,
+  Radar,
+  Route,
+  Search,
+  SlidersHorizontal,
+  Target,
+  TimerReset,
+  TrendingUp,
+  UsersRound,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { signalCategories, signalStats, signals } from '../api/mockData'
+import { getSignalStats, getSignalCategories, getSignals } from '../api/dashboard'
+import { useAsyncData } from '../hooks/useAsyncData'
 import type { Momentum, ProblemSignal, SignalStat } from '../types'
 
 const statIcon: Record<SignalStat['tone'], typeof Radar> = {
@@ -18,29 +35,36 @@ const momentumClass: Record<Momentum, string> = {
   Stable: 'moment-stable',
 }
 
-const categoryFor = (signal: ProblemSignal): string => {
-  const match = signalCategories.find(
-    (category) => category.id !== 'all' && category.label === signal.category,
-  )
-  return match?.id ?? 'all'
-}
-
 export function SignalsPage() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
-  const [watched, setWatched] = useState<Set<string>>(
-    () => new Set(signals.filter((signal) => signal.watching).map((signal) => signal.id)),
-  )
+
+  const { data: statsList } = useAsyncData(getSignalStats, [])
+  const { data: categoriesList } = useAsyncData(getSignalCategories, [])
+  const { data: signalsList } = useAsyncData(getSignals, [])
+
+  const tabs = useMemo(() => {
+    return [{ id: 'all', label: 'All signals' }, ...categoriesList]
+  }, [categoriesList])
+
+  const categoryFor = (signal: ProblemSignal): string => {
+    const match = categoriesList.find(
+      (cat) => cat.label === signal.category,
+    )
+    return match?.id ?? 'all'
+  }
+
+  const [watched, setWatched] = useState<Set<string>>(() => new Set())
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return signals.filter((signal) => {
+    return signalsList.filter((signal) => {
       const matchesQuery =
         !q || `${signal.title} ${signal.description} ${signal.category}`.toLowerCase().includes(q)
       const matchesCategory = category === 'all' || categoryFor(signal) === category
       return matchesQuery && matchesCategory
     })
-  }, [query, category])
+  }, [query, category, signalsList, categoriesList])
 
   const toggleWatch = (id: string) => {
     setWatched((current) => {
@@ -70,7 +94,7 @@ export function SignalsPage() {
       </header>
 
       <section className="signal-summary-grid">
-        {signalStats.map((stat) => {
+        {statsList.map((stat) => {
           const Icon = statIcon[stat.tone]
           return (
             <article className="card signal-stat" key={stat.id}>
@@ -100,7 +124,7 @@ export function SignalsPage() {
           />
         </label>
         <div className="category-tabs" role="tablist" aria-label="Signal categories">
-          {signalCategories.map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               role="tab"
