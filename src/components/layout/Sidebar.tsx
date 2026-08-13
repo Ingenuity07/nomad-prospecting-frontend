@@ -3,6 +3,7 @@ import {
   ChevronDown,
   CircleHelp,
   Compass,
+  Cpu,
   LayoutDashboard,
   ListFilter,
   MessageSquareText,
@@ -27,6 +28,7 @@ const navIconMap: Record<string, LucideIcon> = {
   'chart-column': ChartColumn,
   settings: Settings,
   'circle-help': CircleHelp,
+  cpu: Cpu,
 }
 
 interface SidebarProps {

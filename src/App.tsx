@@ -11,6 +11,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SignalsPage } from './pages/SignalsPage'
+import { LLMAnalyticsPage } from './pages/LLMAnalyticsPage'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="campaigns" element={<CampaignsPage />} />
           <Route path="campaigns/new" element={<CampaignBuilderPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="llm-analytics" element={<LLMAnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="404" element={<NotFoundPage />} />
           <Route path="*" element={<Navigate to="/404" replace />} />

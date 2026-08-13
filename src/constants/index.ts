@@ -79,6 +79,7 @@ export const NAV_GROUPS = [
     label: 'Insights',
     items: [
       { to: '/analytics', label: 'Analytics', icon: 'chart-column' },
+      { to: '/llm-analytics', label: 'LLM Cost & Tokens', icon: 'cpu' },
     ],
   },
 ] as const
