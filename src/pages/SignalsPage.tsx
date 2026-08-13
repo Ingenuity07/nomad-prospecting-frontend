@@ -1,22 +1,6 @@
 import { useMemo, useState } from 'react'
-import {
-  ArrowRight,
-  ClipboardCheck,
-  Eye,
-  EyeOff,
-  Gauge,
-  Radar,
-  Route,
-  Search,
-  SlidersHorizontal,
-  Target,
-  TimerReset,
-  TrendingUp,
-  UsersRound,
-  Wrench,
-  type LucideIcon,
-} from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { ArrowRight, ClipboardCheck, Eye, EyeOff, Gauge, Radar, Route, Search, SlidersHorizontal, Target, TimerReset, TrendingUp, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
 import { getSignalStats, getSignalCategories, getSignals } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { Momentum, ProblemSignal, SignalStat } from '../types'

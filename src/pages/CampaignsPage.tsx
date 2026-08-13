@@ -17,7 +17,9 @@ import {
   Wrench,
   type LucideIcon,
 } from 'lucide-react'
-import { campaignInsight, campaignMetrics, campaigns, playbooks } from '../api/mockData'
+import { campaignInsight } from '../api/mockData'
+import { getCampaignMetrics, getCampaigns, getPlaybooks } from '../api/dashboard'
+import { useAsyncData } from '../hooks/useAsyncData'
 import type { Campaign, CampaignMetric, Playbook } from '../types'
 
 const metricIcon: Record<CampaignMetric['id'], LucideIcon> = {
@@ -41,9 +43,12 @@ const playbookIcon: Record<Playbook['iconTone'], LucideIcon> = {
 
 export function CampaignsPage() {
   const [tab, setTab] = useState('campaigns')
-  const [paused, setPaused] = useState<Set<string>>(
-    () => new Set(campaigns.filter((campaign) => campaign.status === 'Paused').map((campaign) => campaign.id)),
-  )
+
+  const { data: metricsList } = useAsyncData(getCampaignMetrics, [])
+  const { data: campaignsList } = useAsyncData(getCampaigns, [])
+  const { data: playbooksList } = useAsyncData(getPlaybooks, [])
+
+  const [paused, setPaused] = useState<Set<string>>(() => new Set())
 
   const togglePause = (id: string) => {
     setPaused((current) => {
@@ -74,7 +79,7 @@ export function CampaignsPage() {
 
       <div className="page-tabs">
         <button type="button" className={tab === 'campaigns' ? 'active' : ''} onClick={() => setTab('campaigns')}>
-          Campaigns <span>{campaigns.length}</span>
+          Campaigns <span>{campaignsList.length}</span>
         </button>
         <button type="button" className={tab === 'sequences' ? 'active' : ''} onClick={() => setTab('sequences')}>
           Sequences
@@ -85,7 +90,7 @@ export function CampaignsPage() {
       </div>
 
       <section className="campaign-metric-grid">
-        {campaignMetrics.map((metric) => {
+        {metricsList.map((metric) => {
           const Icon = metricIcon[metric.id]
           return (
             <article className="card campaign-metric" key={metric.id}>
@@ -115,7 +120,7 @@ export function CampaignsPage() {
             </button>
           </div>
           <div className="campaign-list">
-            {campaigns.map((campaign) => {
+            {campaignsList.map((campaign) => {
               const Icon = campaignIcon[campaign.iconTone]
               const isPaused = paused.has(campaign.id)
               const progress = Math.round((campaign.sent / campaign.total) * 100)
@@ -211,7 +216,7 @@ export function CampaignsPage() {
           </button>
         </div>
         <div className="playbook-grid">
-          {playbooks.map((playbook) => {
+          {playbooksList.map((playbook) => {
             const Icon = playbookIcon[playbook.iconTone]
             return (
               <article className="playbook-card" key={playbook.id}>

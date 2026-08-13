@@ -1,6 +1,7 @@
 import { ArrowRight, FolderPlus, Layers, MoreHorizontal, Sparkles, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { accountLists } from '../api/mockData'
+import { getLists } from '../api/dashboard'
+import { useAsyncData } from '../hooks/useAsyncData'
 import type { AccountList } from '../types'
 
 const listIcon: Record<AccountList['iconTone'], typeof Layers> = {
@@ -12,6 +13,8 @@ const listIcon: Record<AccountList['iconTone'], typeof Layers> = {
 }
 
 export function ListsPage() {
+  const { data: listsList } = useAsyncData(getLists, [])
+
   return (
     <div className="page page-enter lists-page">
       <header className="page-header">
@@ -31,7 +34,7 @@ export function ListsPage() {
       </header>
 
       <section className="featured-lists-grid">
-        {accountLists.slice(0, 3).map((list) => {
+        {listsList.slice(0, 3).map((list) => {
           const Icon = listIcon[list.iconTone]
           return (
             <article className="card list-card" key={list.id}>
@@ -118,7 +121,7 @@ export function ListsPage() {
               </tr>
             </thead>
             <tbody>
-              {accountLists.map((list) => {
+              {listsList.map((list) => {
                 const Icon = listIcon[list.iconTone]
                 return (
                   <tr key={list.id}>

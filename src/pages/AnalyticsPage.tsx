@@ -1,15 +1,13 @@
 import { useId, type ReactNode } from 'react'
 import { ArrowRight, Download, Lightbulb, MailCheck, Radar, Target, TrendingUp, type LucideIcon } from 'lucide-react'
 import {
-  analyticsMetrics,
   funnelInsight,
-  funnelStages,
   pipeline,
-  problemPerformance,
-  sourceRanking,
 } from '../api/mockData'
-import type { AnalyticsMetric, ProblemPerformance } from '../types'
+import { getAnalyticsMetrics, getFunnelStages, getProblemPerformance, getSourceRanking } from '../api/dashboard'
+import { useAsyncData } from '../hooks/useAsyncData'
 import { areaPath, smoothPath, toChartPoints } from '../utils/chart'
+import type { AnalyticsMetric, ProblemPerformance } from '../types'
 
 const metricIcon: Record<AnalyticsMetric['id'], LucideIcon> = {
   pipeline: TrendingUp,
@@ -31,6 +29,11 @@ const PAD = 12
 
 export function AnalyticsPage() {
   const gradientId = useId()
+
+  const { data: analyticsMetricsList } = useAsyncData(getAnalyticsMetrics, [])
+  const { data: funnelStagesList } = useAsyncData(getFunnelStages, [])
+  const { data: problemPerformanceList } = useAsyncData(getProblemPerformance, [])
+  const { data: sourceRankingList } = useAsyncData(getSourceRanking, [])
 
   const allValues = [...pipeline.actual, ...pipeline.previous]
   const actual = toChartPoints(pipeline.actual, W, H, PAD, Math.min(...allValues), Math.max(...allValues))
@@ -60,7 +63,7 @@ export function AnalyticsPage() {
       </header>
 
       <section className="analytics-metrics">
-        {analyticsMetrics.map((metric) => {
+        {analyticsMetricsList.map((metric) => {
           const Icon = metricIcon[metric.id]
           return (
             <article className={`card analytics-metric ${metric.featured ? 'featured' : ''}`} key={metric.id}>
@@ -167,7 +170,7 @@ export function AnalyticsPage() {
             </span>
           </div>
           <div className="funnel-stages">
-            {funnelStages.map((stage, index) => (
+            {funnelStagesList.map((stage, index) => (
               <FunnelItem key={stage.id} index={index} width={stage.width}>
                 <span>{stage.label}</span>
                 <strong>{stage.count.toLocaleString()}</strong>
@@ -209,7 +212,7 @@ export function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {problemPerformance.map((row) => (
+                {problemPerformanceList.map((row) => (
                   <tr key={row.id}>
                     <td>
                       <span className={`performance-problem ${performanceTone[row.tone]}`}>
@@ -245,7 +248,7 @@ export function AnalyticsPage() {
             </div>
           </div>
           <div className="source-ranking">
-            {sourceRanking.map((source, index) => (
+            {sourceRankingList.map((source, index) => (
               <div key={source.id}>
                 <span>{index + 1}</span>
                 <p>
