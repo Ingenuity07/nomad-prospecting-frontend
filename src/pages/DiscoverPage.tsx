@@ -25,6 +25,7 @@ const steps = [
 
 export function DiscoverPage() {
   const [statement, setStatement] = useState(discoveryProblem.statement)
+  const [location, setLocation] = useState(discoveryProblem.market.locations)
   const [selected, setSelected] = useState<EvidenceKind[]>(['hiring', 'technology', 'change'])
   const [problemChip, setProblemChip] = useState('Manual route planning')
   const [submitting, setSubmitting] = useState(false)
@@ -39,8 +40,8 @@ export function DiscoverPage() {
     event.preventDefault()
     setSubmitting(true)
     postDiscover({
-      keyword: problemChip,
-      location: 'Leeds'
+      keyword: statement,
+      location: location
     }).then(() => {
       setSubmitting(false)
       alert("Discovery run initiated on background worker successfully!")
@@ -180,7 +181,7 @@ export function DiscoverPage() {
                 <span className="field-label">Locations</span>
                 <div className="input-with-icon">
                   <MapPin size={13} />
-                  <input defaultValue={discoveryProblem.market.locations} />
+                  <input value={location} onChange={(event) => setLocation(event.target.value)} />
                 </div>
               </label>
               <label>
