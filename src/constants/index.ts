@@ -46,8 +46,8 @@ export const WORKSPACE = {
   renewsOn: 'Renews on 1 September',
   creditUsedPercent: 58,
   managePlanLabel: 'Manage plan',
-  userInitials: 'PS',
-  userName: 'Priya Shah',
+  userInitials: 'SS',
+  userName: 'Shivam Singh',
   userRole: 'Admin',
 } as const
 
@@ -61,8 +61,14 @@ export const DISCOVER = {
   eyebrow: 'Start discovery',
   title: 'Find new customers',
   description:
-    'Tell us the problem your customers have and where they are based. We search for companies that match, then check each one for you.',
+    'Tell us what you sell (optional), the problem your customers have, and where they are based. We search for companies that match, then check each one for you.',
   // Form
+  intro: 'Three short answers help us find the right companies. The first one is optional.',
+  sellLabel: 'What do you sell?',
+  sellOptional: '(optional)',
+  sellPlaceholder: 'e.g. Route planning software for delivery teams',
+  sellHint: 'If you sell a product or service, tell us about it. Leave it blank if you do not.',
+  sellExamples: ['Route planning software', 'Fleet tracking tools', 'Field service software'],
   problemLabel: 'What problem do your customers have?',
   problemPlaceholder: 'e.g. Teams plan delivery routes by hand and lose hours every week',
   problemExamples: ['Manual route planning', 'Scheduling bottlenecks', 'Poor delivery visibility'],
@@ -105,40 +111,11 @@ export const DISCOVER = {
   tryAgain: 'Try again',
 } as const
 
-export const NAV_GROUPS = [
-  {
-    label: 'Workspace',
-    items: [
-      { to: '/', label: 'Overview', icon: 'layout-dashboard', end: true },
-    ],
-  },
-  {
-    label: 'Intelligence',
-    items: [
-      { to: '/discover', label: 'Discover', icon: 'radar', badge: 'AI' },
-      { to: '/signals', label: 'Problem signals', icon: 'zap', count: 12 },
-    ],
-  },
-  {
-    label: 'Activation',
-    items: [
-      { to: '/leads', label: 'Leads', icon: 'users-round' },
-      { to: '/lists', label: 'Lists', icon: 'list-filter' },
-      { to: '/campaigns', label: 'Campaigns', icon: 'message-square-text' },
-    ],
-  },
-  {
-    label: 'Insights',
-    items: [
-      { to: '/analytics', label: 'Analytics', icon: 'chart-column' },
-      { to: '/llm-analytics', label: 'LLM Cost & Tokens', icon: 'cpu' },
-    ],
-  },
-] as const
-
-export const SIDEBAR_FOOTER_LINKS = [
-  { to: '/settings', label: 'Settings', icon: 'settings' },
-  { to: '#help', label: 'Help & resources', icon: 'circle-help' },
+export const NAV_ITEMS = [
+  { to: '/', label: 'Overview', icon: 'layout-dashboard', detail: 'Workspace', end: true },
+  { to: '/discover', label: 'Discover', icon: 'radar', detail: 'Intelligence', badge: 'AI' },
+  { to: '/leads', label: 'Leads', icon: 'users-round', detail: 'Activation' },
+  { to: '/llm-analytics', label: 'LLM Cost & Tokens', icon: 'cpu', detail: 'Insights' },
 ] as const
 
 /* ------------------------------------------------------------------ */

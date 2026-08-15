@@ -42,7 +42,7 @@ export function LeadDetailPage() {
   const handleSyncCRM = () => {
     if (!leadId) return
     setSyncing(true)
-    postLeadCRMSync(leadId, { owner_email: "priya@nomad.ai" })
+    postLeadCRMSync(leadId, { owner_email: "shivam@nomad.ai" })
       .then(() => {
         setSynced(true)
         setSyncing(false)
@@ -323,10 +323,10 @@ export function LeadDetailPage() {
           </section>
 
           <section className="card owner-card">
-            <span className="profile-avatar">PS</span>
+            <span className="profile-avatar">SS</span>
             <p>
               <small>Account owner</small>
-              <strong>Priya Shah</strong>
+              <strong>Shivam Singh</strong>
             </p>
             <Link to="/settings">Change</Link>
           </section>

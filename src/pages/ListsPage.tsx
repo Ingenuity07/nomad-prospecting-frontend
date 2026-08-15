@@ -30,7 +30,7 @@ export function ListsPage() {
         accounts: 0,
         newThisWeek: 0,
         actNow: 0,
-        owners: ['PS'],
+        owners: ['SS'],
         updated: 'Just now',
       },
     ])
@@ -221,7 +221,7 @@ export function ListsPage() {
                     <td>
                       <span className="list-owner">
                         <i>{list.owners[0]}</i>
-                        {list.owners[0] === 'PS' ? 'Priya Shah' : list.owners[0] === 'JM' ? 'Jon Miles' : 'Alex Kim'}
+                        {list.owners[0] === 'SS' ? 'Shivam Singh' : list.owners[0] === 'JM' ? 'Jon Miles' : 'Alex Kim'}
                       </span>
                     </td>
                     <td>

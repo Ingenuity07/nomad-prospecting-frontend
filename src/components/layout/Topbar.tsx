@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bell, MailCheck, Menu, Plus, Radar, Search, TimerReset } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { NAV_GROUPS, SEARCH_PLACEHOLDER } from '../../constants'
+import { NAV_ITEMS, SEARCH_PLACEHOLDER } from '../../constants'
 import { mockDashboard } from '../../api/mockData'
 import { navIcon } from './navIcons'
 
@@ -16,14 +16,12 @@ interface CommandEntry {
   icon: typeof Radar
 }
 
-const commandItems: CommandEntry[] = NAV_GROUPS.flatMap((group) =>
-  group.items.map((item) => ({
-    to: item.to,
-    label: item.label,
-    detail: group.label,
-    icon: navIcon(item.icon),
-  })),
-)
+const commandItems: CommandEntry[] = NAV_ITEMS.map((item) => ({
+  to: item.to,
+  label: item.label,
+  detail: item.detail,
+  icon: navIcon(item.icon),
+}))
 
 const notificationToneIcons = {
   lime: Radar,

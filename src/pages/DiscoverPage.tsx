@@ -15,6 +15,7 @@ const MOCK_SUMMARY = { discovered: 12, new: 9, duplicates: 3 }
 const STAGE_ORDER: DiscoveryStageId[] = DISCOVER.runStages.map((step) => step.stage)
 
 export function DiscoverPage() {
+  const [sell, setSell] = useState('')
   const [problem, setProblem] = useState('')
   const [location, setLocation] = useState('')
   const [error, setError] = useState('')
@@ -47,6 +48,7 @@ export function DiscoverPage() {
     event.preventDefault()
     const keyword = problem.trim()
     const place = location.trim()
+    const sellText = sell.trim()
 
     if (!keyword) {
       setError(DISCOVER.problemRequired)
@@ -59,7 +61,10 @@ export function DiscoverPage() {
     setError('')
     setSubmitting(true)
     try {
-      const response = await postDiscover({ keyword, location: place })
+      // The backend optimises long descriptions into clean search keywords, so
+      // the optional "what do you sell" answer can safely enrich the keyword.
+      const query = sellText ? `${keyword} — ${sellText}` : keyword
+      const response = await postDiscover({ keyword: query, location: place })
       startRun(keyword, place, response)
     } catch {
       setError(DISCOVER.failedDetail)
@@ -90,9 +95,30 @@ export function DiscoverPage() {
         <form className="discovery-layout" onSubmit={submit} noValidate>
           <section className="card discovery-card">
             <h2>Start a discovery</h2>
-            <p>Two questions are all we need. You can edit the text or pick an example.</p>
+            <p>{DISCOVER.intro}</p>
 
             {error && <div className="discovery-error">{error}</div>}
+
+            <div className="discovery-field">
+              <label htmlFor="discovery-sell">
+                {DISCOVER.sellLabel} <span>{DISCOVER.sellOptional}</span>
+              </label>
+              <input
+                id="discovery-sell"
+                className="discovery-input"
+                value={sell}
+                onChange={(event) => setSell(event.target.value)}
+                placeholder={DISCOVER.sellPlaceholder}
+              />
+              <span className="discovery-hint">{DISCOVER.sellHint}</span>
+              <div className="discovery-examples">
+                {DISCOVER.sellExamples.map((example) => (
+                  <button key={example} type="button" onClick={() => setSell(example)}>
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="discovery-field">
               <label htmlFor="discovery-problem">

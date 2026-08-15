@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Backend adapter: the live Django API returns untyped JSON, so payloads are
+// cast to the app's types at this boundary (same pattern as api/client.ts).
 import { Building2, Target, Zap, Users, UsersRound, TrendingUp, Radar, MailCheck } from 'lucide-react'
 import type {
   AccountList,
@@ -213,8 +216,8 @@ export const getLeads = async (): Promise<LeadRow[]> => {
         sources: 2,
         window: windowVal,
         fitScore: lead.analysis?.lead_score || 70,
-        owner: 'Priya Shah',
-        ownerInitials: 'PS',
+        owner: 'Shivam Singh',
+        ownerInitials: 'SS',
         lastSeen: '1d ago',
       }
     })

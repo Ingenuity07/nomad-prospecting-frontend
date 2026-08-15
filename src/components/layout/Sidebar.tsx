@@ -1,33 +1,21 @@
 import {
-  ChartColumn,
   ChevronDown,
-  CircleHelp,
   Compass,
   Cpu,
   LayoutDashboard,
-  ListFilter,
-  MessageSquareText,
   Radar,
-  Settings,
   Target,
   UsersRound,
   X,
-  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import { NavLink, Link } from 'react-router-dom'
-import { NAV_GROUPS, SIDEBAR_FOOTER_LINKS, WORKSPACE } from '../../constants'
+import { NAV_ITEMS, WORKSPACE } from '../../constants'
 
 const navIconMap: Record<string, LucideIcon> = {
   'layout-dashboard': LayoutDashboard,
   radar: Radar,
-  zap: Zap,
   'users-round': UsersRound,
-  'list-filter': ListFilter,
-  'message-square-text': MessageSquareText,
-  'chart-column': ChartColumn,
-  settings: Settings,
-  'circle-help': CircleHelp,
   cpu: Cpu,
 }
 
@@ -62,27 +50,21 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </Link>
 
         <nav className="main-nav" aria-label="Main navigation">
-          {NAV_GROUPS.map((group) => (
-            <div className="nav-group" key={group.label}>
-              <span className="nav-label">{group.label}</span>
-              {group.items.map((item) => {
-                const Icon = navIconMap[item.icon]
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={'end' in item ? item.end : false}
-                    className={({ isActive }) => `nav-item ${isActive ? 'nav-active' : ''}`}
-                  >
-                    <Icon size={17} strokeWidth={1.9} />
-                    <span>{item.label}</span>
-                    {'badge' in item && item.badge ? <small className="nav-ai">{item.badge}</small> : null}
-                    {'count' in item && item.count ? <small className="nav-count">{item.count}</small> : null}
-                  </NavLink>
-                )
-              })}
-            </div>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const Icon = navIconMap[item.icon]
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={'end' in item ? item.end : false}
+                className={({ isActive }) => `nav-item ${isActive ? 'nav-active' : ''}`}
+              >
+                <Icon size={17} strokeWidth={1.9} />
+                <span>{item.label}</span>
+                {'badge' in item && item.badge ? <small className="nav-ai">{item.badge}</small> : null}
+              </NavLink>
+            )
+          })}
         </nav>
 
         <div className="sidebar-bottom">
@@ -97,26 +79,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <Link to="/settings">{WORKSPACE.managePlanLabel}</Link>
           </div>
-
-          {SIDEBAR_FOOTER_LINKS.map((item) => {
-            const Icon = navIconMap[item.icon]
-            const isHash = item.to.startsWith('#')
-            return isHash ? (
-              <a key={item.to} className="nav-item" href={item.to}>
-                <Icon size={17} strokeWidth={1.9} />
-                <span>{item.label}</span>
-              </a>
-            ) : (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => `nav-item ${isActive ? 'nav-active' : ''}`}
-              >
-                <Icon size={17} strokeWidth={1.9} />
-                <span>{item.label}</span>
-              </NavLink>
-            )
-          })}
 
           <Link to="/settings" className="profile-row" aria-label="Open account settings">
             <span className="profile-avatar">{WORKSPACE.userInitials}</span>

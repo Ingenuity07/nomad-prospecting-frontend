@@ -417,8 +417,8 @@ export const leads: LeadRow[] = [
     sources: 3,
     window: 'This quarter',
     fitScore: 85,
-    owner: 'Priya',
-    ownerInitials: 'P',
+    owner: 'Shivam',
+    ownerInitials: 'S',
     lastSeen: '1d ago',
   },
   {
@@ -486,7 +486,7 @@ export const accountLists: AccountList[] = [
     accounts: 84,
     newThisWeek: 12,
     actNow: 32,
-    owners: ['PS', 'JM'],
+    owners: ['SS', 'JM'],
     updated: '8 min ago',
   },
   {
@@ -498,7 +498,7 @@ export const accountLists: AccountList[] = [
     accounts: 61,
     newThisWeek: 7,
     actNow: 23,
-    owners: ['PS'],
+    owners: ['SS'],
     updated: '2 hours ago',
   },
   {
@@ -590,7 +590,7 @@ export const campaigns: Campaign[] = [
     total: 84,
     positiveReplies: 17.2,
     meetings: 6,
-    owner: 'PS',
+    owner: 'SS',
     iconTone: 'lime',
   },
   {
