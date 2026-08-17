@@ -17,6 +17,7 @@ const navIconMap: Record<string, LucideIcon> = {
   radar: Radar,
   'users-round': UsersRound,
   cpu: Cpu,
+  target: Target,
 }
 
 interface SidebarProps {

@@ -14,12 +14,16 @@ export interface FetchOptions {
   headers?: Record<string, string>
   body?: any
   timeoutMs?: number
+  signal?: AbortSignal
 }
 
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { method = 'GET', headers = {}, body, timeoutMs = API.timeoutMs } = options
+  const { method = 'GET', headers = {}, body, timeoutMs = API.timeoutMs, signal } = options
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), timeoutMs)
+  const abortFromCaller = () => controller.abort(signal?.reason)
+  signal?.addEventListener('abort', abortFromCaller, { once: true })
+  if (signal?.aborted) abortFromCaller()
   const requestHeaders: Record<string, string> = {
     Accept: 'application/json',
     ...headers,
@@ -46,5 +50,6 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     return (await response.json()) as T
   } finally {
     window.clearTimeout(timer)
+    signal?.removeEventListener('abort', abortFromCaller)
   }
 }
