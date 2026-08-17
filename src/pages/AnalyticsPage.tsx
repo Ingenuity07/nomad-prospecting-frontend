@@ -6,6 +6,7 @@ import {
 } from '../api/mockData'
 import { getAnalyticsMetrics, getFunnelStages, getProblemPerformance, getSourceRanking } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { PageLoader } from '../components/ui/PageLoader'
 import { areaPath, smoothPath, toChartPoints } from '../utils/chart'
 import type { AnalyticsMetric, ProblemPerformance } from '../types'
 
@@ -55,10 +56,10 @@ export function AnalyticsPage() {
   const gradientId = useId()
   const [range, setRange] = useState(0)
 
-  const { data: analyticsMetricsList } = useAsyncData(getAnalyticsMetrics, [])
-  const { data: funnelStagesList } = useAsyncData(getFunnelStages, [])
-  const { data: problemPerformanceList } = useAsyncData(getProblemPerformance, [])
-  const { data: sourceRankingList } = useAsyncData(getSourceRanking, [])
+  const { data: analyticsMetricsList, loading: metricsLoading } = useAsyncData(getAnalyticsMetrics, [])
+  const { data: funnelStagesList, loading: funnelLoading } = useAsyncData(getFunnelStages, [])
+  const { data: problemPerformanceList, loading: performanceLoading } = useAsyncData(getProblemPerformance, [])
+  const { data: sourceRankingList, loading: rankingLoading } = useAsyncData(getSourceRanking, [])
 
   const allValues = [...pipeline.actual, ...pipeline.previous]
   const actual = toChartPoints(pipeline.actual, W, H, PAD, Math.min(...allValues), Math.max(...allValues))
@@ -91,6 +92,8 @@ export function AnalyticsPage() {
           </button>
         </div>
       </header>
+
+      {(metricsLoading || funnelLoading || performanceLoading || rankingLoading) ? <PageLoader label="Loading performance analytics…" /> : <>
 
       <section className="analytics-metrics">
         {analyticsMetricsList.map((metric) => {
@@ -291,6 +294,7 @@ export function AnalyticsPage() {
           <p className="source-note">Reply rate when the source appears in the opening message.</p>
         </aside>
       </section>
+      </>}
     </div>
   )
 }

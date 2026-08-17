@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom'
 import { campaignInsight } from '../api/mockData'
 import { getCampaignMetrics, getCampaigns, getPlaybooks } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { PageLoader } from '../components/ui/PageLoader'
 import type { Campaign, CampaignMetric, Playbook } from '../types'
 
 const metricIcon: Record<CampaignMetric['id'], LucideIcon> = {
@@ -43,9 +44,9 @@ const playbookIcon: Record<Playbook['iconTone'], LucideIcon> = {
 export function CampaignsPage() {
   const [tab, setTab] = useState('campaigns')
 
-  const { data: metricsList } = useAsyncData(getCampaignMetrics, [])
-  const { data: campaignsList } = useAsyncData(getCampaigns, [])
-  const { data: playbooksList } = useAsyncData(getPlaybooks, [])
+  const { data: metricsList, loading: metricsLoading } = useAsyncData(getCampaignMetrics, [])
+  const { data: campaignsList, loading: campaignsLoading } = useAsyncData(getCampaigns, [])
+  const { data: playbooksList, loading: playbooksLoading } = useAsyncData(getPlaybooks, [])
 
   const [paused, setPaused] = useState<Set<string>>(() => new Set())
 
@@ -75,6 +76,8 @@ export function CampaignsPage() {
           </Link>
         </div>
       </header>
+
+      {(metricsLoading || campaignsLoading || playbooksLoading) ? <PageLoader label="Loading campaigns…" /> : <>
 
       <div className="page-tabs">
         <button type="button" className={tab === 'campaigns' ? 'active' : ''} onClick={() => setTab('campaigns')}>
@@ -228,6 +231,7 @@ export function CampaignsPage() {
           })}
         </div>
       </section>
+      </>}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, ClipboardCheck, Eye, EyeOff, Gauge, Radar, Route, Search, Target, TimerReset, TrendingUp, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
 import { getSignalStats, getSignalCategories, getSignals } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { PageLoader } from '../components/ui/PageLoader'
 import type { Momentum, SignalStat } from '../types'
 
 const statIcon: Record<SignalStat['tone'], typeof Radar> = {
@@ -23,9 +24,9 @@ export function SignalsPage() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
 
-  const { data: statsList } = useAsyncData(getSignalStats, [])
-  const { data: categoriesList } = useAsyncData(getSignalCategories, [])
-  const { data: signalsList } = useAsyncData(getSignals, [])
+  const { data: statsList, loading: statsLoading } = useAsyncData(getSignalStats, [])
+  const { data: categoriesList, loading: categoriesLoading } = useAsyncData(getSignalCategories, [])
+  const { data: signalsList, loading: signalsLoading } = useAsyncData(getSignals, [])
 
   const tabs = useMemo(() => {
     return [{ id: 'all', label: 'All signals' }, ...categoriesList]
@@ -66,6 +67,8 @@ export function SignalsPage() {
           </p>
         </div>
       </header>
+
+      {(statsLoading || categoriesLoading || signalsLoading) ? <PageLoader label="Loading signal intelligence…" /> : <>
 
       <section className="signal-summary-grid">
         {statsList.map((stat) => {
@@ -164,6 +167,7 @@ export function SignalsPage() {
           )
         })}
       </section>
+      </>}
 
       {filtered.length === 0 && (
         <div className="card placeholder-empty">

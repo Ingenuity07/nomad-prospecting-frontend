@@ -16,6 +16,8 @@ import type { IntakeRequest, SpecificationVersion, ProspectingSpecification } fr
 
 const MOCK_SUMMARY = { discovered: 12, new: 9, duplicates: 3 }
 const STAGE_ORDER: DiscoveryStageId[] = DISCOVER.runStages.map((step) => step.stage)
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && error.message ? error.message : fallback
 
 export function DiscoverPage() {
   const [sell, setSell] = useState('')
@@ -62,10 +64,10 @@ export function DiscoverPage() {
         if (response.request.status !== 'PARSING') {
           window.clearInterval(pollId)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Polling failed:", err)
       }
-    }, 2000)
+    }, 5000)
 
     return () => {
       active = false
@@ -103,10 +105,10 @@ export function DiscoverPage() {
           }
           window.clearInterval(pollId)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Discovery run status polling failed:", err)
       }
-    }, 7000)
+    }, 5000)
 
     return () => {
       active = false
@@ -145,8 +147,8 @@ export function DiscoverPage() {
       setIntake(response.request)
       setVersion(null)
       setEditedSpec(null)
-    } catch (err: any) {
-      setError(err?.message || 'Failed to submit prospecting request. Please try again.')
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to submit prospecting request. Please try again.'))
     } finally {
       setSubmitting(false)
     }
@@ -170,8 +172,8 @@ export function DiscoverPage() {
       setVersion(null)
       setEditedSpec(null)
       setClarificationAnswer('')
-    } catch (err: any) {
-      setError(err?.message || 'Failed to submit clarification. Please try again.')
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to submit clarification. Please try again.'))
     } finally {
       setSubmitting(false)
     }
@@ -192,8 +194,8 @@ export function DiscoverPage() {
         setEditedSpec(response.specification_version.specification_json)
       }
       alert('Specification draft saved successfully.')
-    } catch (err: any) {
-      setError(err?.message || 'Failed to save specification draft.')
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to save specification draft.'))
     } finally {
       setSubmitting(false)
     }
@@ -212,8 +214,8 @@ export function DiscoverPage() {
       const place = location || "Leeds"
       
       startRun(response.discovery.id || 'run-1', keyword, place)
-    } catch (err: any) {
-      setError(err?.message || 'Failed to confirm and launch discovery.')
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to confirm and launch discovery.'))
     } finally {
       setSubmitting(false)
     }
@@ -225,8 +227,8 @@ export function DiscoverPage() {
     try {
       await postIntakeCancel(intake.id)
       reset()
-    } catch (err: any) {
-      setError(err?.message || 'Failed to cancel request.')
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to cancel request.'))
     }
   }
 
@@ -244,7 +246,7 @@ export function DiscoverPage() {
   }
 
   return (
-    <div className="page page-enter">
+    <div className="page page-enter" aria-busy={submitting}>
       <header className="page-header">
         <div className="page-heading-copy">
           <span className="page-eyebrow">{DISCOVER.eyebrow}</span>
@@ -252,6 +254,13 @@ export function DiscoverPage() {
           <p>{DISCOVER.description}</p>
         </div>
       </header>
+
+      {submitting && (
+        <div className="processing-banner" role="status" aria-live="polite">
+          <RefreshCw className="animate-spin" size={17} />
+          <div><strong>Request in progress</strong><small>Keep this page open—we’ll update it as soon as processing finishes.</small></div>
+        </div>
+      )}
 
       {run && <RunPanel run={run} metrics={runMetrics} onReset={reset} />}
 

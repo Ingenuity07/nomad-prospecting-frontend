@@ -8,6 +8,7 @@ export function useAsyncData<T>(loader: () => Promise<T>, initialValue: T) {
   useEffect(() => {
     let active = true
     setLoading(true)
+    setError(null)
     loader()
       .then((result) => {
         if (active) setData(result)

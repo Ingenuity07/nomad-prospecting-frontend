@@ -4,6 +4,7 @@ import { getDashboard } from '../api/dashboard'
 import { MetricGrid } from '../components/dashboard/MetricGrid'
 import { PageHeader } from '../components/dashboard/PageHeader'
 import { SignalPulse } from '../components/dashboard/SignalPulse'
+import { PageLoader } from '../components/ui/PageLoader'
 import { OVERVIEW } from '../constants'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { DashboardData } from '../types'
@@ -17,7 +18,7 @@ const emptyDashboard: DashboardData = {
 }
 
 export function OverviewPage() {
-  const { data } = useAsyncData(getDashboard, emptyDashboard)
+  const { data, loading } = useAsyncData(getDashboard, emptyDashboard)
 
   return (
     <div className="page page-enter">
@@ -32,9 +33,10 @@ export function OverviewPage() {
         }
       />
 
-      <MetricGrid metrics={data.metrics} />
-
-      <SignalPulse data={data.pulse} />
+      {loading ? <PageLoader label="Loading your workspace overview…" /> : <>
+        <MetricGrid metrics={data.metrics} />
+        <SignalPulse data={data.pulse} />
+      </>}
     </div>
   )
 }

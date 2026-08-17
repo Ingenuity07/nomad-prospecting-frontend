@@ -14,6 +14,7 @@ import {
 import { Link } from 'react-router-dom'
 import { getLeads, getLeadKpis } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { PageLoader } from '../components/ui/PageLoader'
 import type { BuyingWindow, LeadKpi, LeadRow } from '../types'
 
 const PAGE_SIZE = 6
@@ -65,8 +66,8 @@ function downloadLeads(leads: LeadRow[]) {
 }
 
 export function LeadsPage() {
-  const { data: leadsList } = useAsyncData(getLeads, [])
-  const { data: kpisList } = useAsyncData(getLeadKpis, [])
+  const { data: leadsList, loading: leadsLoading } = useAsyncData(getLeads, [])
+  const { data: kpisList, loading: kpisLoading } = useAsyncData(getLeadKpis, [])
 
   const [query, setQuery] = useState('')
   const [problem, setProblem] = useState('All problems')
@@ -151,6 +152,8 @@ export function LeadsPage() {
           </Link>
         </div>
       </header>
+
+      {(leadsLoading || kpisLoading) ? <PageLoader label="Loading qualified accounts…" /> : <>
 
       <section className="lead-kpi-strip card">
         {kpisList.map((kpi, index) => {
@@ -355,6 +358,7 @@ export function LeadsPage() {
           </div>
         </div>
       </section>
+      </>}
     </div>
   )
 }

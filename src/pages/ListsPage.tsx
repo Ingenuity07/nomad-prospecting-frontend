@@ -3,10 +3,11 @@ import { ArrowRight, Check, FolderPlus, Layers, Sparkles, Users } from 'lucide-r
 import { Link } from 'react-router-dom'
 import { getLists } from '../api/dashboard'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { PageLoader } from '../components/ui/PageLoader'
 import type { AccountList } from '../types'
 
 export function ListsPage() {
-  const { data: listsList } = useAsyncData(getLists, [])
+  const { data: listsList, loading } = useAsyncData(getLists, [])
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [kind, setKind] = useState<'smart' | 'static'>('smart')
@@ -65,6 +66,8 @@ export function ListsPage() {
           </button>
         </div>
       </header>
+
+      {loading ? <PageLoader label="Loading saved lists…" /> : <>
 
       {creating && (
         <section className="card discovery-card" style={{ marginBottom: 22 }}>
@@ -260,6 +263,7 @@ export function ListsPage() {
           )}
         </button>
       </section>
+      </>}
     </div>
   )
 }

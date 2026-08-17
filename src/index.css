@@ -2106,6 +2106,21 @@ kbd {
   font-size:12px;
 }
 
+.page-loader{border:1px solid var(--line);border-radius:14px;background:#fff;padding:22px;margin-top:2px;overflow:hidden}
+.page-loader-copy{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.page-loader-copy strong,.page-loader-copy small{display:block}
+.page-loader-copy strong{font-size:14px}.page-loader-copy small{color:var(--muted);font-size:12px;margin-top:2px}
+.page-loader-icon{width:34px;height:34px;border-radius:10px;background:#eef5e5;color:var(--lime-dark);display:grid;place-items:center}
+.page-loader-icon svg{animation:spin .8s linear infinite}
+.page-loader-skeleton{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.page-loader-skeleton i{height:104px;border-radius:10px;background:linear-gradient(100deg,#f0f3ef 20%,#fafbfa 40%,#f0f3ef 60%);background-size:220% 100%;animation:loader-shimmer 1.35s ease-in-out infinite}
+.page-loader-skeleton i:last-child{grid-column:1/-1;height:150px}
+@keyframes loader-shimmer{to{background-position-x:-220%}}
+.processing-banner{position:sticky;top:72px;z-index:8;display:flex;align-items:center;gap:11px;margin-bottom:16px;padding:12px 14px;border:1px solid #cfe0b0;border-radius:11px;background:#f7fbefff;box-shadow:0 8px 24px #1d321015;color:var(--ink)}
+.processing-banner svg{flex:none;color:var(--lime-dark)}
+.processing-banner strong,.processing-banner small{display:block}.processing-banner strong{font-size:13px}.processing-banner small{color:var(--muted);font-size:12px;margin-top:1px}
+@media (width<=580px){.page-loader-skeleton{grid-template-columns:1fr}.page-loader-skeleton i:last-child{grid-column:auto}}
+
 /* ============================================================
    Simplicity pass — consistent type scale, readable sizes,
    smooth transitions, and the simplified discovery flow
