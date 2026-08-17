@@ -23,7 +23,7 @@ export const APP = {
  */
 export const API = {
   baseUrl: (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v3/prospecting',
-  timeoutMs: 15000,
+  timeoutMs: 120000,
   endpoints: {
     dashboard: '/dashboard',
     metrics: '/dashboard/metrics',

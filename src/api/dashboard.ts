@@ -145,6 +145,42 @@ export const postDiscover = (body: { keyword: string; location: string }): Promi
     { method: 'POST', body },
   )
 
+export const getDiscoveryRunStatus = (id: string) =>
+  apiFetch<any>(`/discover/${id}/status/`)
+
+export const postIntake = (body: { objective: string; target?: string; qualification?: string }) =>
+  apiFetch<any>('/intake/', {
+    method: 'POST',
+    body,
+  })
+
+export const getIntakeDetail = (id: string) =>
+  apiFetch<any>(`/intake/${id}/`)
+
+export const postIntakeClarify = (id: string, body: { question: string; answer: string }) =>
+  apiFetch<any>(`/intake/${id}/clarify/`, {
+    method: 'POST',
+    body,
+  })
+
+export const patchIntakeSpecification = (id: string, body: { specification_json: any }) =>
+  apiFetch<any>(`/intake/${id}/specification/`, {
+    method: 'PATCH',
+    body,
+  })
+
+export const postIntakeConfirm = (id: string, body: { version: number }) =>
+  apiFetch<any>(`/intake/${id}/confirm/`, {
+    method: 'POST',
+    body,
+  })
+
+export const postIntakeCancel = (id: string) =>
+  apiFetch<any>(`/intake/${id}/cancel/`, {
+    method: 'POST',
+  })
+
+
 /* ------------------------------------------------------------------ */
 /* Signals                                                             */
 /* ------------------------------------------------------------------ */

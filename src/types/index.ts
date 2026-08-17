@@ -194,6 +194,9 @@ export interface LeadRow {
   ownerInitials: string
   unassigned?: boolean
   lastSeen: string
+  discoveryRunId?: string
+  discoveryRunKeyword?: string
+  discoveryRunLocation?: string
 }
 
 /* ------------------------------------------------------------------ */
