@@ -12,8 +12,8 @@ import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SignalsPage } from './pages/SignalsPage'
 import { LLMAnalyticsPage } from './pages/LLMAnalyticsPage'
-import { ProspectingCampaignsPage } from './pages/ProspectingCampaignsPage'
-import { ProspectingCampaignLeadsPage } from './pages/ProspectingCampaignLeadsPage'
+import { DiscoveryRunsPage } from './pages/DiscoveryRunsPage'
+import { DiscoveryRunLeadsPage } from './pages/DiscoveryRunLeadsPage'
 
 export default function App() {
   return (
@@ -23,17 +23,16 @@ export default function App() {
           <Route index element={<OverviewPage />} />
           <Route path="discover" element={<DiscoverPage />} />
           <Route path="signals" element={<SignalsPage />} />
-          <Route path="leads" element={<ProspectingCampaignsPage />} />
+          <Route path="leads" element={<Navigate to="/prospecting/discovery-runs" replace />} />
           <Route path="leads/all" element={<LeadsPage />} />
-          <Route path="leads/campaigns/:campaignId" element={<ProspectingCampaignLeadsPage />} />
-          <Route path="leads/campaigns/:campaignId/leads/:leadId" element={<ProspectingCampaignLeadsPage />} />
           <Route path="leads/:leadId" element={<LeadDetailPage />} />
           <Route path="lists" element={<ListsPage />} />
           <Route path="campaigns" element={<CampaignsPage />} />
           <Route path="campaigns/new" element={<CampaignBuilderPage />} />
-          <Route path="prospecting/campaigns" element={<Navigate to="/leads" replace />} />
-          <Route path="prospecting/campaigns/:campaignId" element={<ProspectingCampaignLeadsPage />} />
-          <Route path="prospecting/campaigns/:campaignId/leads/:leadId" element={<ProspectingCampaignLeadsPage />} />
+          <Route path="prospecting/discovery-runs" element={<DiscoveryRunsPage />} />
+          <Route path="prospecting/discovery-runs/:runId" element={<DiscoveryRunLeadsPage />} />
+          <Route path="prospecting/discovery-runs/:runId/leads/:leadId" element={<DiscoveryRunLeadsPage />} />
+          <Route path="prospecting/campaigns" element={<Navigate to="/prospecting/discovery-runs" replace />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="llm-analytics" element={<LLMAnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />

@@ -1,20 +1,30 @@
-export type CampaignStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED'
+export type DiscoveryRunStatus = 'pending' | 'running' | 'completed' | 'failed' | string
 
-export interface ProspectingCampaign {
+export interface DiscoveryRun {
   id: string
-  name: string
-  description: string | null
-  product_description: string
-  problem_statement: string
-  geography: Record<string, unknown>
-  status: CampaignStatus
+  keyword: string
+  location: string
+  status: DiscoveryRunStatus
+  total_leads_found: number
   lead_count: number
-  discovery_run_count: number
-  created_at: string
-  updated_at: string
+  new_lead_count: number
+  duplicate_lead_count: number
+  campaign: { id: string; name: string; status: string } | null
+  prospecting_request: { id: string; status: string; objective: string | null; target: string | null; qualification: string | null } | null
+  specification_version: { id: string; version: number; status: string } | null
+  started_at: string
+  completed_at: string | null
 }
 
-export interface CampaignsResponse { campaigns: ProspectingCampaign[] }
+export interface DiscoveryRunsResponse {
+  discovery_runs: DiscoveryRun[]
+  total_count: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export interface DiscoveryRunFilters { page?: number; pageSize?: number; status?: string; search?: string; campaignId?: string }
 
 export interface ProspectingLead {
   id: string
@@ -29,7 +39,7 @@ export interface ProspectingLead {
   created_at: string
 }
 
-export interface CampaignLeadsResponse {
+export interface DiscoveryRunLeadsResponse {
   leads: ProspectingLead[]
   total_count: number
   page: number
@@ -38,12 +48,6 @@ export interface CampaignLeadsResponse {
   categories: string[]
 }
 
-export interface CampaignLeadFilters {
-  page?: number
-  pageSize?: number
-  scoreMin?: string | number
-  location?: string
-  category?: string
-}
-
+export interface DiscoveryRunLeadFilters { page?: number; pageSize?: number; scoreMin?: string | number; location?: string; category?: string }
+export interface DiscoveryRunLiveStatus { status: DiscoveryRunStatus; [key: string]: unknown }
 export type LeadIntelligence = Record<string, unknown>
