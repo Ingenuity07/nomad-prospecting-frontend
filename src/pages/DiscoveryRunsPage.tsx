@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, CalendarDays, MapPin, RefreshCw, Search, SearchX, Workflow } from 'lucide-react'
+import { ArrowRight, CalendarDays, MapPin, RefreshCw, Search, SearchX, UsersRound, Workflow } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getDiscoveryRuns } from '../api/prospecting'
 import { PageLoader } from '../components/ui/PageLoader'
@@ -7,7 +7,7 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import type { DiscoveryRunsResponse } from '../types/prospecting'
 
 const PAGE_SIZE = 20
-const dateLabel = (value: string | null) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—'
+const dateLabel = (value: string | null) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : null
 
 export function DiscoveryRunsPage() {
   const [params, setParams] = useSearchParams()
@@ -47,8 +47,13 @@ export function DiscoveryRunsPage() {
       </div>
       {loading ? <PageLoader label="Loading discovery runs…" /> : error ? <div className="prospecting-state" role="alert"><SearchX size={23} /><h2>We couldn’t load discovery runs</h2><p>{error}</p><button className="button button-primary" onClick={() => setAttempt((value) => value + 1)}><RefreshCw size={14} /> Try again</button></div> : !data?.discovery_runs.length ? <div className="prospecting-state"><Workflow size={24} /><h2>No discovery runs yet</h2><p>New prospecting searches will appear here.</p></div> : <>
         <div className="prospecting-run-list" aria-label="Discovery runs">{data.discovery_runs.map((run) => <Link className="prospecting-run-row" to={`/prospecting/discovery-runs/${encodeURIComponent(run.id)}`} key={run.id}>
-          <div className="prospecting-run-title"><span className={`prospecting-status status-${run.status.toLowerCase()}`}>{run.status}</span><h2>{run.keyword || 'Untitled search'}</h2><span><MapPin size={13} /> {run.location || 'Any location'}</span></div>
-          <div><small>Campaign</small><strong>{run.campaign?.name || 'No campaign'}</strong></div><div><small>Started</small><strong><CalendarDays size={13} /> {dateLabel(run.started_at)}</strong></div><div><small>Completed</small><strong>{dateLabel(run.completed_at)}</strong></div><ArrowRight size={16} />
+          <div className="prospecting-run-main">
+            <div className="prospecting-run-heading"><span className={`prospecting-status status-${run.status.toLowerCase()}`}>{run.status}</span><h2>{run.keyword || 'Untitled search'}</h2></div>
+            <div className="prospecting-run-meta"><span><MapPin size={13} /> {run.location || 'Any location'}</span>{run.campaign?.name && run.campaign.name !== run.keyword ? <span><Workflow size={13} /> {run.campaign.name}</span> : null}</div>
+          </div>
+          <div className="prospecting-run-leads"><small>Leads collected</small><strong><UsersRound size={14} /> {run.lead_count.toLocaleString()}</strong>{run.total_leads_found > run.lead_count ? <span>{run.total_leads_found.toLocaleString()} found</span> : null}</div>
+          <div className="prospecting-run-timeline"><small>{run.completed_at ? 'Completed' : 'Started'}</small><strong><CalendarDays size={13} /> {dateLabel(run.completed_at || run.started_at) || 'Date unavailable'}</strong></div>
+          <span className="prospecting-run-open" aria-hidden="true"><ArrowRight size={17} /></span>
         </Link>)}</div>
         <div className="prospecting-pagination"><span>Page {data.page} of {Math.max(data.total_pages, 1)} · {data.total_count.toLocaleString()} runs</span><div><button className="button button-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button><button className="button button-secondary" disabled={page >= data.total_pages} onClick={() => setPage(page + 1)}>Next</button></div></div>
       </>}
