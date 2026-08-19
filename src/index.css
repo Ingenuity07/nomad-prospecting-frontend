@@ -2328,6 +2328,99 @@ textarea.discovery-input {
   padding: 26px;
 }
 
+/* Intake parsing state */
+.discovery-parsing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 38px 32px 34px;
+  text-align: center;
+}
+
+.discovery-parsing-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  border: 1px solid #dce9c4;
+  border-radius: 16px;
+  background: #f5faeb;
+  color: #5f7c1d;
+  box-shadow: 0 8px 24px #48600e14;
+}
+
+.discovery-parsing-visual > span {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid #9bbd4f4d;
+  border-top-color: #769a28;
+  border-radius: 19px;
+  animation: spin 1.8s linear infinite;
+}
+
+.discovery-parsing-eyebrow {
+  color: #718065;
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.discovery-parsing h2 {
+  margin: 7px 0 8px;
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 660;
+  letter-spacing: -0.3px;
+}
+
+.discovery-parsing > p {
+  max-width: 540px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.discovery-parsing-progress {
+  width: min(100%, 480px);
+  height: 6px;
+  margin-top: 24px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9ede6;
+}
+
+.discovery-parsing-progress > span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #749629, var(--lime), #749629);
+  animation: discovery-parsing-progress 1.65s ease-in-out infinite;
+}
+
+.discovery-parsing-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  color: var(--muted-2);
+  font-size: 12px;
+}
+
+.discovery-parsing-status svg {
+  flex: none;
+  color: #77932e;
+}
+
+@keyframes discovery-parsing-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(245%); }
+}
+
 .discovery-run-head {
   display: flex;
   justify-content: space-between;
@@ -2464,6 +2557,17 @@ textarea.discovery-input {
 @media (width <= 820px) {
   .discovery-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (width <= 580px) {
+  .discovery-parsing {
+    padding: 32px 20px 28px;
+  }
+
+  .discovery-parsing-status {
+    align-items: flex-start;
+    text-align: left;
   }
 }
 

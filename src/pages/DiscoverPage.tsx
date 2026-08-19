@@ -436,12 +436,28 @@ export function DiscoverPage() {
 
       {/* PARSING LOADING PANEL */}
       {!run && intake && intake.status === 'PARSING' && (
-        <section className="card discovery-run" style={{ textAlign: 'center', padding: '60px 40px' }}>
-          <RefreshCw className="animate-spin text-primary" size={32} style={{ margin: '0 auto 20px auto', color: 'var(--primary)' }} />
-          <h2>Parsing Specification...</h2>
-          <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>
-            The AI parser is structuring your campaigns goals into validated criteria. This takes a few seconds.
+        <section
+          className="card discovery-parsing"
+          role="status"
+          aria-live="polite"
+          aria-label="Building your prospecting criteria"
+        >
+          <div className="discovery-parsing-visual" aria-hidden="true">
+            <span />
+            <Sparkles size={23} />
+          </div>
+          <span className="discovery-parsing-eyebrow">Analyzing your request</span>
+          <h2>Building your prospecting criteria</h2>
+          <p>
+            We’re turning your campaign goals into clear, validated criteria. This usually takes less than a minute.
           </p>
+          <div className="discovery-parsing-progress" aria-hidden="true">
+            <span />
+          </div>
+          <div className="discovery-parsing-status">
+            <RefreshCw className="animate-spin" size={14} aria-hidden="true" />
+            Structuring target, location, and qualification rules
+          </div>
         </section>
       )}
 
