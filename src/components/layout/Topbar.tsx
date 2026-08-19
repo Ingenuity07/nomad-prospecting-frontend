@@ -159,7 +159,7 @@ export function Topbar({ onOpenMenu }: TopbarProps) {
         </div>
 
         <a href="/discover" className="button button-dark topbar-cta">
-          <Plus size={16} /> New discovery
+          <Plus size={16} /> New campaign
         </a>
       </div>
 

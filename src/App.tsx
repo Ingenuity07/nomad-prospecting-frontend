@@ -23,7 +23,7 @@ export default function App() {
           <Route index element={<OverviewPage />} />
           <Route path="discover" element={<DiscoverPage />} />
           <Route path="signals" element={<SignalsPage />} />
-          <Route path="leads" element={<Navigate to="/prospecting/discovery-runs" replace />} />
+          <Route path="leads" element={<Navigate to="/prospecting/campaigns" replace />} />
           <Route path="leads/all" element={<LeadsPage />} />
           <Route path="leads/:leadId" element={<LeadDetailPage />} />
           <Route path="lists" element={<ListsPage />} />
@@ -32,7 +32,7 @@ export default function App() {
           <Route path="prospecting/discovery-runs" element={<DiscoveryRunsPage />} />
           <Route path="prospecting/discovery-runs/:runId" element={<DiscoveryRunLeadsPage />} />
           <Route path="prospecting/discovery-runs/:runId/leads/:leadId" element={<DiscoveryRunLeadsPage />} />
-          <Route path="prospecting/campaigns" element={<Navigate to="/prospecting/discovery-runs" replace />} />
+          <Route path="prospecting/campaigns" element={<DiscoveryRunsPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="llm-analytics" element={<LLMAnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />

@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowRight,
   Check,
@@ -29,6 +29,8 @@ const evidenceToneIcon: Record<EvidenceItem['tone'], LucideIcon> = {
 
 export function LeadDetailPage() {
   const { leadId } = useParams<{ leadId: string }>()
+  const [searchParams] = useSearchParams()
+  const backTo = searchParams.get('from') || '/prospecting/campaigns'
   const [syncing, setSyncing] = useState(false)
   const [synced, setSynced] = useState(false)
   const [feedbackSelected, setFeedbackSelected] = useState<string | null>(null)
@@ -74,8 +76,8 @@ export function LeadDetailPage() {
         <div className="card placeholder-empty" style={{ maxWidth: 520, margin: '60px auto' }}>
           <h2>Account not found</h2>
           <p>We couldn’t find an account for “{leadId}”.</p>
-          <Link to="/leads" className="button button-primary">
-            Back to leads
+          <Link to={backTo} className="button button-primary">
+            Back to campaign
           </Link>
         </div>
       </div>
@@ -85,8 +87,8 @@ export function LeadDetailPage() {
   return (
     <div className="page page-enter account-page">
       <div className="breadcrumb">
-        <Link to="/leads">
-          <ArrowRight size={11} style={{ transform: 'rotate(180deg)' }} /> Qualified accounts
+        <Link to={backTo}>
+          <ArrowRight size={11} style={{ transform: 'rotate(180deg)' }} /> Campaign leads
         </Link>
         <span>{account.name}</span>
       </div>

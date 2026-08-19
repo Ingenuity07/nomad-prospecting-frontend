@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowRight, Check, MapPin, Radar, Sparkles, RefreshCw, X, ChevronRight, HelpCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   postIntake,
   getIntakeDetail,
@@ -20,9 +20,11 @@ const errorMessage = (error: unknown, fallback: string) =>
   error instanceof Error && error.message ? error.message : fallback
 
 export function DiscoverPage() {
-  const [sell, setSell] = useState('')
-  const [problem, setProblem] = useState('')
-  const [location, setLocation] = useState('')
+  const [params] = useSearchParams()
+  const rerunId = params.get('rerun')
+  const [sell, setSell] = useState(() => params.get('sell') || '')
+  const [problem, setProblem] = useState(() => params.get('problem') || '')
+  const [location, setLocation] = useState(() => params.get('location') || '')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [run, setRun] = useState<DiscoveryRun | null>(null)
@@ -267,7 +269,8 @@ export function DiscoverPage() {
       {!run && !intake && (
         <form className="discovery-layout" onSubmit={submitIntake} noValidate>
           <section className="card discovery-card">
-            <h2>Start a discovery</h2>
+            <h2>{rerunId ? 'Edit and rerun campaign' : 'Start a discovery'}</h2>
+            {rerunId && <p className="discovery-rerun-note"><RefreshCw size={14} /> Editing a previous campaign. Confirm the criteria below to create a fresh run without changing the original.</p>}
             <p>{DISCOVER.intro}</p>
 
             {error && <div className="discovery-error">{error}</div>}
