@@ -328,6 +328,8 @@ export interface Contact {
   relevancePct: number
   avatarClass: string
   relevanceClass: string
+  email?: string
+  linkedinUrl?: string
 }
 
 export interface AccountDetail {
@@ -341,7 +343,7 @@ export interface AccountDetail {
   status: string
   /** Detected operational problem, e.g. "Manual route planning" */
   problem: string
-  score: number
+  score: number | null
   scoreLabel: string
   scoreNote: string
   factors: ScoreFactor[]
@@ -351,11 +353,13 @@ export interface AccountDetail {
   evidenceTotal: number
   evidence: EvidenceItem[]
   contacts: Contact[]
-  window: BuyingWindow
-  windowScore: number
+  window: BuyingWindow | 'Not enough data'
+  windowScore: number | null
   windowNote: string
   windowReasons: string[]
   windowUpdated: string
   snapshot: { label: string; value: string }[]
   talkingPoints: string[]
+  lastResearched?: string | null
+  sourceCount?: number
 }

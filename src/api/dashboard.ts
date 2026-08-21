@@ -26,8 +26,6 @@ import type {
 } from '../types'
 import { apiFetch } from './client'
 import {
-  accountDetails,
-  buildFallbackAccountDetail,
   accountLists,
   campaignInsight,
   campaignMetrics,
@@ -274,95 +272,93 @@ export const getAccountDetail = async (id: string): Promise<AccountDetail | null
     const name = company.name || 'Unknown Company'
     const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'CO'
     
+    const buyingGroup = raw.buying_group ?? []
     const mappedContacts = contacts.map((c: any, index: number) => {
-      const initials = (c.first_name?.[0] || '') + (c.last_name?.[0] || '')
+      const groupMember = buyingGroup.find((member: any) => member.person?.id === c.id)
+      const fullName = c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Contact'
+      const initials = fullName.split(/\s+/).map((part: string) => part[0]).join('').slice(0, 2)
+      const email = c.contact_points?.find((point: any) => point.type === 'EMAIL')?.value
       return {
         id: c.id,
-        name: `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Contact',
-        role: c.role || 'Stakeholder',
+        name: fullName,
+        role: c.title || groupMember?.reason || 'Role not confirmed',
         initials: initials.toUpperCase() || 'CT',
-        relevance: c.relevance_score >= 80 ? 'Decision maker' : 'Key influencer',
-        relevancePct: c.relevance_score || 70,
+        relevance: groupMember?.role_type
+          ? String(groupMember.role_type).toLowerCase().replaceAll('_', ' ')
+          : 'Contact found',
+        relevancePct: Number(groupMember?.relevance_score) || 0,
         avatarClass: `contact-${index % 3}`,
-        relevanceClass: c.relevance_score >= 80 ? 'relevance-0' : 'relevance-1',
+        relevanceClass: Number(groupMember?.relevance_score) >= 80 ? 'relevance-0' : 'relevance-1',
+        email,
+        linkedinUrl: c.linkedin_url || undefined,
       }
     })
     
-    if (mappedContacts.length === 0) {
-      mappedContacts.push({
-        id: 'fallback-contact',
-        name: 'Operations Lead',
-        role: 'Operations',
-        initials: 'OL',
-        relevance: 'Decision maker',
-        relevancePct: 88,
-        avatarClass: 'contact-0',
-        relevanceClass: 'relevance-0',
-      })
-    }
-    
     const mappedEvidence = rawEvidence.map((e: any, index: number) => ({
       id: e.id || `e-${index}`,
-      title: e.signal_name || 'Observable Signal',
-      time: e.detected_at ? new Date(e.detected_at).toLocaleDateString() : 'Recently',
-      detail: e.raw_evidence_context || 'Verified signal presence.',
-      source: e.source_url || 'Scraped website',
-      strength: e.relevance_score >= 80 ? 'strong' : 'moderate',
+      title: e.signal_name || e.source_title || 'Website evidence',
+      time: e.captured_at ? new Date(e.captured_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date unavailable',
+      detail: e.evidence_text || 'No evidence excerpt was captured.',
+      source: e.source_url || '',
+      strength: Number(e.confidence) >= 0.8 ? 'strong' : 'medium',
       tone: 'lime',
     }))
-    
-    if (mappedEvidence.length === 0) {
-      mappedEvidence.push({
-        id: 'fallback-evidence',
-        title: `Signals match ‘${raw.problem_hypothesis || 'needs route optimization'}’`,
-        time: 'Recently',
-        detail: 'Observable signals detected across scraped pages.',
-        source: company.website || 'Company website',
-        strength: 'strong',
-        tone: 'lime',
-      })
-    }
 
-    const fitScore = Math.round(scores.overall || 70)
-    const domain = company.website ? company.website.replace(/https?:\/\/(www\.)?/, '').split('/')[0] : `${company.id}.co.uk`
+    const numberOrNull = (value: unknown) => value === null || value === undefined ? null : Math.round(Number(value))
+    const fitScore = numberOrNull(scores.overall)
+    const buyingWindowScore = numberOrNull(scores.buying_window)
+    const domain = company.website ? company.website.replace(/https?:\/\/(www\.)?/, '').split('/')[0] : ''
+    const scoreLabel = fitScore === null
+      ? 'Research pending'
+      : fitScore >= 80 ? 'Excellent fit' : fitScore >= 60 ? 'Good fit' : 'Needs review'
+    const lastResearched = raw.freshness?.last_researched || null
+    const fitClass = String(raw.explanation?.overall_classification || '')
+    const confidence = fitClass && fitClass !== 'UNKNOWN'
+      ? `${fitClass.toLowerCase().replaceAll('_', ' ')} confidence`
+      : mappedEvidence.length >= 2 ? 'Good evidence coverage' : mappedEvidence.length === 1 ? 'Limited evidence' : 'Not yet researched'
     
     return {
       id: company.id || id,
       name,
       domain,
-      industry: company.category || 'Logistics & Outbound',
-      location: company.address || 'London, UK',
+      industry: company.category || 'Not available',
+      location: company.address || 'Not available',
       initials,
-      markTone: fitScore >= 80 ? 'navy' : 'blue',
-      status: 'Qualified account',
-      problem: raw.problem_hypothesis || 'Needs route optimization',
+      markTone: fitScore !== null && fitScore >= 80 ? 'navy' : 'blue',
+      status: fitScore === null ? 'Research pending' : 'Researched account',
+      problem: raw.problem_hypothesis || 'No problem hypothesis yet',
       score: fitScore,
-      scoreLabel: fitScore >= 85 ? 'Excellent problem fit' : 'Strong problem fit',
-      scoreNote: 'Matched from recent operational signals in your workspace.',
+      scoreLabel,
+      scoreNote: fitScore === null ? 'A score will appear after account research is complete.' : `Based on ${mappedEvidence.length} evidence record${mappedEvidence.length === 1 ? '' : 's'}.`,
       factors: [
-        { id: 'fit', label: 'Problem fit', value: Math.round(scores.problem_fit || 75) },
-        { id: 'evidence', label: 'Evidence strength', value: Math.round(scores.evidence_strength || 70) },
-        { id: 'window', label: 'Buying window', value: Math.round(scores.buying_window || 65) },
-      ],
-      nextStep: 'Lead with evidence from the latest operational signal',
-      confidence: 'High confidence',
-      thesis: explanation.overall_classification || `${name} shows multiple signals consistent with route optimization needs.`,
+        { id: 'fit', label: 'Problem fit', value: numberOrNull(scores.problem_fit) },
+        { id: 'evidence', label: 'Evidence quality', value: numberOrNull(scores.evidence_strength) },
+        { id: 'window', label: 'Buying readiness', value: buyingWindowScore },
+      ].filter((factor): factor is { id: string; label: string; value: number } => factor.value !== null),
+      nextStep: raw.recommended_action || 'Research this account before outreach',
+      confidence,
+      thesis: explanation.overall_classification && explanation.overall_classification !== 'UNKNOWN'
+        ? String(explanation.overall_classification).toLowerCase().replaceAll('_', ' ')
+        : mappedEvidence.length ? 'This hypothesis is supported by the evidence below.' : 'No supporting evidence has been captured yet.',
       evidenceTotal: mappedEvidence.length,
       evidence: mappedEvidence,
       contacts: mappedContacts,
-      window: fitScore >= 80 ? 'Act now' : 'Researching',
-      windowScore: Math.round(scores.buying_window || 70),
-      windowNote: 'Timing is inferred from the freshness of recent evidence.',
-      windowReasons: (explanation.positive_factors && explanation.positive_factors.length > 0) ? explanation.positive_factors : ['Fresh evidence detected', 'Active problem language'],
-      windowUpdated: 'Window updated today',
+      window: buyingWindowScore === null ? 'Not enough data' : buyingWindowScore >= 75 ? 'Act now' : buyingWindowScore >= 50 ? 'Researching' : 'Monitoring',
+      windowScore: buyingWindowScore,
+      windowNote: buyingWindowScore === null ? 'Buying readiness has not been scored.' : 'Calculated from observed growth and activity signals.',
+      windowReasons: (explanation.positive_factors || []).slice(0, 3),
+      windowUpdated: lastResearched ? `Last researched ${new Date(lastResearched).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Not researched yet',
       snapshot: [
-        { label: 'Industry', value: company.category || 'Outbound Logistics' },
-        { label: 'Location', value: company.address || 'London, UK' },
+        { label: 'Industry', value: company.category || 'Not available' },
+        { label: 'Location', value: company.address || 'Not available' },
+        { label: 'Sources', value: String(raw.source_summary?.verifiable_sources ?? 0) },
       ],
-      talkingPoints: (explanation.positive_factors && explanation.positive_factors.length > 0) ? explanation.positive_factors : ['Reference the recent operational signal evidence.'],
+      talkingPoints: (raw.talking_points || []).slice(0, 3),
+      lastResearched,
+      sourceCount: Number(raw.source_summary?.verifiable_sources) || 0,
     }
   } catch {
-    return accountDetails[id] ?? buildFallbackAccountDetail(id) ?? null
+    return null
   }
 }
 export const getLeadSalesGuidance = (id: string) =>
